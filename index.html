@@ -1,0 +1,5250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#070707">
+<meta name="color-scheme" content="dark">
+<title>MrFeastProjectBank</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+:root{
+  --bg:#070707;
+  --gold:#d4af37;
+  --gold-light:#f5d77a;
+  --gold-deep:#9c7c2e;
+  --text:#f3ead2;
+  --muted:#8a8270;
+  --green:#5fcf80;
+  --red:#ff6868;
+  --card-w:min(92vw,460px);
+  --card-h:calc(var(--card-w)*.63);
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+  min-height:100%;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+body{
+  font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  background:
+    radial-gradient(1200px 600px at 80% -10%,rgba(212,175,55,.10),transparent 60%),
+    radial-gradient(900px 500px at -10% 110%,rgba(212,175,55,.07),transparent 55%),
+    var(--bg);
+  color:var(--text);
+  min-height:100dvh;
+  overflow-x:hidden;
+  padding-bottom:calc(24px + var(--safe-b));
+}
+
+button,input,textarea{
+  font:inherit;
+}
+
+button{
+  color:inherit;
+}
+
+.hidden{
+  display:none!important;
+}
+
+/* ================= AUTH ================= */
+
+.auth-screen{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:22px;
+  background:
+    radial-gradient(700px 500px at 50% 0%,rgba(212,175,55,.12),transparent 65%),
+    #050505;
+  transform:translateZ(0);
+}
+
+.auth-box{
+  width:min(100%,430px);
+  padding:32px 26px 28px;
+  border:1px solid rgba(212,175,55,.20);
+  border-radius:28px;
+  background:linear-gradient(145deg,rgba(25,25,25,.96),rgba(8,8,8,.96));
+  box-shadow:
+    0 35px 100px rgba(0,0,0,.7),
+    inset 0 1px 0 rgba(255,255,255,.05);
+  text-align:center;
+  animation:authIn .45s cubic-bezier(.2,.8,.2,1);
+  will-change:transform,opacity;
+  transform:translateZ(0);
+}
+
+@keyframes authIn{
+  from{opacity:0;transform:translateY(16px) scale(.98)}
+  to{opacity:1;transform:none}
+}
+
+.auth-logo{
+  width:82px;
+  height:82px;
+  margin:auto;
+  display:block;
+  filter:drop-shadow(0 0 22px rgba(212,175,55,.20));
+}
+
+.auth-title{
+  margin-top:16px;
+  font-size:25px;
+  font-weight:800;
+  background:linear-gradient(180deg,var(--gold-light),var(--gold),var(--gold-deep));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.auth-subtitle{
+  margin-top:8px;
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.5;
+}
+
+.auth-step{
+  margin-top:25px;
+  text-align:left;
+}
+
+.field-label{
+  display:block;
+  margin-bottom:8px;
+  color:var(--muted);
+  font-size:11px;
+  letter-spacing:1.4px;
+  text-transform:uppercase;
+}
+
+.input{
+  width:100%;
+  border:1px solid rgba(212,175,55,.18);
+  outline:none;
+  border-radius:14px;
+  padding:14px 15px;
+  background:rgba(255,255,255,.035);
+  color:var(--text);
+  transition:border-color .18s,box-shadow .18s;
+}
+
+.input:focus{
+  border-color:rgba(212,175,55,.65);
+  box-shadow:0 0 0 3px rgba(212,175,55,.08);
+}
+
+.input::placeholder{
+  color:#5d584c;
+}
+
+.auth-btn,
+.gold-btn{
+  width:100%;
+  border:0;
+  border-radius:14px;
+  padding:14px;
+  margin-top:12px;
+  cursor:pointer;
+  font-weight:700;
+  color:#171207;
+  background:linear-gradient(135deg,var(--gold-light),var(--gold),var(--gold-deep));
+  box-shadow:0 10px 25px rgba(212,175,55,.14);
+  transition:filter .18s,transform .18s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  transform:translateZ(0);
+}
+
+.auth-btn:hover,
+.gold-btn:hover{
+  filter:brightness(1.08);
+  transform:translateY(-1px) translateZ(0);
+}
+
+.auth-btn:active,
+.gold-btn:active{
+  transform:scale(.98) translateZ(0);
+}
+
+.auth-btn:disabled{
+  opacity:.5;
+  cursor:wait;
+}
+
+.pin-display-box{
+  background:rgba(212,175,55,.07);
+  border:1px solid rgba(212,175,55,.25);
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:18px;
+  text-align:center;
+}
+
+.pin-display-value{
+  font-family:monospace;
+  font-size:32px;
+  font-weight:800;
+  letter-spacing:8px;
+  color:var(--gold-light);
+  margin:10px 0;
+  padding:10px;
+  background:rgba(0,0,0,.45);
+  border-radius:12px;
+  border:1px dashed rgba(212,175,55,.45);
+  user-select:all;
+}
+
+.secondary-btn{
+  width:100%;
+  border:1px solid rgba(212,175,55,.20);
+  border-radius:14px;
+  padding:13px;
+  margin-top:10px;
+  background:rgba(255,255,255,.03);
+  color:var(--text);
+  cursor:pointer;
+  font-weight:600;
+  transition:background .18s;
+}
+
+.secondary-btn:hover{
+  background:rgba(255,255,255,.07);
+}
+
+.danger-btn{
+  width:100%;
+  border:1px solid rgba(255,104,104,.35);
+  border-radius:14px;
+  padding:12px;
+  margin-top:12px;
+  background:rgba(255,104,104,.10);
+  color:var(--red);
+  cursor:pointer;
+  font-weight:700;
+  transition:background .18s;
+}
+
+.danger-btn:hover{
+  background:rgba(255,104,104,.2);
+}
+
+.auth-message{
+  min-height:20px;
+  margin-top:13px;
+  font-size:12px;
+  text-align:center;
+  color:var(--muted);
+}
+
+.auth-message.error{
+  color:var(--red);
+}
+
+.auth-message.success{
+  color:var(--green);
+}
+
+.otp{
+  text-align:center;
+  letter-spacing:9px;
+  font-size:24px;
+  font-weight:700;
+}
+
+/* AVATAR SELECTOR & UPLOAD */
+.avatar-section{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  margin:14px 0 20px;
+  gap:10px;
+}
+
+.avatar-preview{
+  width:96px;
+  height:96px;
+  border-radius:50%;
+  object-fit:cover;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  color:#171207;
+  font-size:32px;
+  font-weight:800;
+  background:linear-gradient(145deg,var(--gold-light),var(--gold-deep));
+  border:3px solid rgba(212,175,55,.5);
+  box-shadow:0 8px 24px rgba(0,0,0,.6);
+  overflow:hidden;
+  position:relative;
+  transition:transform .18s,border-color .18s;
+}
+
+.avatar-preview:hover{
+  border-color:var(--gold-light);
+  transform:scale(1.02);
+}
+
+.avatar-preview img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.avatar-upload-actions{
+  display:flex;
+  gap:8px;
+}
+
+.upload-photo-btn{
+  border:1px solid rgba(212,175,55,.3);
+  background:rgba(212,175,55,.1);
+  color:var(--gold-light);
+  padding:7px 14px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  transition:background .18s;
+}
+
+.upload-photo-btn:hover{
+  background:rgba(212,175,55,.2);
+}
+
+.avatar-presets{
+  display:flex;
+  gap:8px;
+  margin-top:4px;
+}
+
+.preset-chip{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.05);
+  display:grid;
+  place-items:center;
+  font-size:16px;
+  cursor:pointer;
+  transition:transform .15s,border-color .15s;
+}
+
+.preset-chip:hover{
+  border-color:var(--gold);
+  transform:scale(1.1);
+}
+
+/* ================= WELCOME ================= */
+
+.welcome-screen{
+  position:fixed;
+  inset:0;
+  z-index:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  background:
+    radial-gradient(700px 500px at 50% 30%,rgba(212,175,55,.13),transparent 65%),
+    #050505;
+  animation:welcomeIn .4s ease;
+  transform:translateZ(0);
+}
+
+@keyframes welcomeIn{
+  from{opacity:0}
+  to{opacity:1}
+}
+
+.welcome-inner{
+  padding:30px;
+}
+
+.welcome-logo{
+  width:105px;
+  height:105px;
+  filter:drop-shadow(0 0 30px rgba(212,175,55,.25));
+  animation:logoPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes logoPulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.035)}
+}
+
+.welcome-bank{
+  margin-top:20px;
+  font-size:24px;
+  font-weight:800;
+  background:linear-gradient(180deg,var(--gold-light),var(--gold),var(--gold-deep));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.welcome-greeting{
+  margin-top:12px;
+  font-size:17px;
+  color:var(--text);
+}
+
+.welcome-name{
+  margin-top:7px;
+  font-size:14px;
+  color:var(--muted);
+}
+
+/* ================= APP ================= */
+
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:18px clamp(16px,5vw,40px);
+  position:sticky;
+  top:0;
+  z-index:20;
+  backdrop-filter:blur(8px);
+  background:linear-gradient(to bottom,rgba(7,7,7,.9),rgba(7,7,7,0));
+  transform:translateZ(0);
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:700;
+}
+
+.brand .logo{
+  width:30px;
+  height:30px;
+}
+
+.brand span{
+  font-size:15px;
+  background:linear-gradient(180deg,var(--gold-light),var(--gold),var(--gold-deep));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.top-actions{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.status-badge{
+  font-size:11px;
+  padding:4px 9px;
+  border-radius:20px;
+  background:rgba(95,207,128,.12);
+  border:1px solid rgba(95,207,128,.3);
+  color:var(--green);
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+
+.status-dot{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 8px var(--green);
+}
+
+.avatar{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  font-weight:700;
+  font-size:14px;
+  color:#1a1407;
+  background:linear-gradient(145deg,var(--gold-light),var(--gold-deep));
+  box-shadow:
+    0 0 0 1px rgba(212,175,55,.4),
+    0 4px 14px rgba(0,0,0,.5);
+  cursor:pointer;
+  transition:transform .18s,box-shadow .18s;
+  transform:translateZ(0);
+}
+
+.avatar:hover{
+  transform:scale(1.05) translateZ(0);
+  box-shadow:0 0 0 2px var(--gold-light);
+}
+
+.topbar-icon-btn{
+  width:38px;
+  height:38px;
+  border-radius:12px;
+  background:rgba(212,175,55,.08);
+  border:1px solid rgba(212,175,55,.25);
+  color:var(--gold);
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  transition:all .18s ease;
+  min-width:48px;
+  min-height:48px;
+  padding:0;
+}
+
+.topbar-icon-btn:hover{
+  background:rgba(212,175,55,.2);
+  border-color:var(--gold);
+  transform:scale(1.05);
+}
+
+.topbar-icon-btn svg{
+  width:18px;
+  height:18px;
+  stroke:var(--gold);
+}
+
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:8px clamp(16px,5vw,40px) 0;
+  gap:26px;
+  transform:translateZ(0);
+}
+
+.balance{
+  text-align:center;
+  user-select:none;
+}
+
+.balance .label{
+  font-size:12px;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:10px;
+}
+
+.balance .amount{
+  display:flex;
+  width:min(100%, calc(100vw - 28px));
+  max-width:100%;
+  align-items:baseline;
+  justify-content:center;
+  gap:0;
+  font-size:clamp(27px,9vw,52px);
+  font-weight:700;
+  line-height:1;
+  white-space:nowrap;
+  overflow:visible;
+  max-width:100%;
+  font-variant-numeric:tabular-nums;
+  background:linear-gradient(180deg,#fff 0%,var(--gold-light) 45%,var(--gold) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.balance .amount .cur{
+  font-size:.62em;
+  font-weight:700;
+  margin-right:.14em;
+  background:none;
+  -webkit-text-fill-color:var(--gold);
+  color:var(--gold);
+}
+
+.balance .delta{
+  margin-top:12px;
+  font-size:13px;
+  color:var(--green);
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+
+.card-scene{
+  width:var(--card-w);
+  height:var(--card-h);
+  perspective:1600px;
+  cursor:pointer;
+  transform:translateZ(0);
+}
+
+.card{
+  position:relative;
+  width:100%;
+  height:100%;
+  transform-style:preserve-3d;
+  transition:transform .7s cubic-bezier(.2,.8,.2,1);
+  will-change:transform;
+  transform:translateZ(0);
+}
+
+.card.flipped{
+  transform:rotateY(180deg) translateZ(0);
+}
+
+.face{
+  position:absolute;
+  inset:0;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  border-radius:22px;
+  overflow:hidden;
+  background:linear-gradient(135deg,#161616 0%,#0a0a0a 45%,#050505 100%);
+  box-shadow:
+    0 30px 60px -20px rgba(0,0,0,.8),
+    0 0 0 1px rgba(212,175,55,.25),
+    inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.face::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(160deg,rgba(255,255,255,.06),transparent 40%);
+  pointer-events:none;
+}
+
+.ribbon{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  pointer-events:none;
+}
+
+.front{
+  padding:clamp(18px,5vw,26px);
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+.front .row-top{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.front .row-top .logo{
+  width:34px;
+  height:34px;
+}
+
+.front .bank-name{
+  font-size:clamp(15px,4.4vw,20px);
+  font-weight:700;
+  background:linear-gradient(180deg,var(--gold-light),var(--gold),var(--gold-deep));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.chip{
+  width:clamp(40px,11vw,52px);
+  height:clamp(30px,8vw,40px);
+  border-radius:7px;
+  background:linear-gradient(135deg,var(--gold-light),var(--gold) 50%,var(--gold-deep));
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.25),0 2px 6px rgba(0,0,0,.5);
+  position:relative;
+  margin-top:6px;
+}
+
+.chip::after{
+  content:"";
+  position:absolute;
+  inset:18% 22%;
+  border:1px solid rgba(0,0,0,.35);
+  border-radius:3px;
+  background:
+    linear-gradient(to right,transparent 48%,rgba(0,0,0,.3) 48% 52%,transparent 52%),
+    linear-gradient(to bottom,transparent 30%,rgba(0,0,0,.25) 30% 32%,transparent 32% 64%,rgba(0,0,0,.25) 64% 66%,transparent 66%);
+}
+
+.number{
+  font-size:clamp(17px,5vw,23px);
+  letter-spacing:3px;
+  font-weight:600;
+  color:var(--text);
+  text-shadow:0 1px 2px rgba(0,0,0,.6);
+  font-variant-numeric:tabular-nums;
+}
+
+.front .row-bot{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.meta .k{
+  font-size:9px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:3px;
+}
+
+.meta .v{
+  font-size:clamp(12px,3.6vw,15px);
+  font-weight:600;
+  color:var(--text);
+}
+
+.network{
+  font-weight:800;
+  font-style:italic;
+  font-size:clamp(15px,4vw,19px);
+  background:linear-gradient(180deg,var(--gold-light),var(--gold-deep));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.back{
+  transform:rotateY(180deg);
+  padding:clamp(18px,5vw,26px);
+  display:flex;
+  flex-direction:column;
+}
+
+.back .bank-name-tr{
+  align-self:flex-end;
+  font-size:clamp(13px,3.6vw,16px);
+  font-weight:700;
+  background:linear-gradient(180deg,var(--gold-light),var(--gold-deep));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+
+.strip{
+  height:clamp(34px,9vw,46px);
+  margin-top:14px;
+  background:linear-gradient(180deg,#1c1c1c,#000);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.sign-row{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-top:22px;
+}
+
+.sign-box{
+  flex:1;
+  height:clamp(40px,11vw,52px);
+  border-radius:6px;
+  background:repeating-linear-gradient(
+    115deg,
+    rgba(212,175,55,.18) 0 6px,
+    rgba(212,175,55,.06) 6px 12px
+  );
+  box-shadow:inset 0 0 0 1px rgba(212,175,55,.3);
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  padding-right:12px;
+  font-style:italic;
+  font-weight:600;
+  color:var(--gold-light);
+  font-size:14px;
+}
+
+.sign-label{
+  font-size:9px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+
+.not-valid{
+  font-size:9px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--muted);
+  line-height:1.5;
+  max-width:90px;
+}
+
+.contactless{
+  width:clamp(26px,7vw,34px);
+  opacity:.85;
+}
+
+.back .bottom{
+  margin-top:auto;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+}
+
+.slogan{
+  font-size:clamp(11px,3vw,13px);
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--gold);
+  line-height:1.7;
+  font-weight:600;
+}
+
+.back .logo-b{
+  width:clamp(34px,9vw,46px);
+  height:clamp(34px,9vw,46px);
+}
+
+.flip-hint{
+  font-size:11px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  gap:7px;
+  user-select:none;
+}
+
+.flip-hint svg{
+  width:14px;
+  height:14px;
+  animation:spin 4s linear infinite;
+}
+
+@keyframes spin{
+  to{transform:rotateY(360deg)}
+}
+
+/* ================= ACTIONS ================= */
+
+.actions{
+  width:min(92vw,460px);
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  transform:translateZ(0);
+}
+
+.act{
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
+  border:1px solid rgba(212,175,55,.14);
+  border-radius:16px;
+  padding:14px 6px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+  transition:border-color .18s,background .18s,transform .18s;
+  will-change:transform;
+  transform:translateZ(0);
+}
+
+.act:hover{
+  border-color:rgba(212,175,55,.4);
+  background:linear-gradient(180deg,rgba(212,175,55,.08),rgba(255,255,255,.01));
+}
+
+.act:active{
+  transform:scale(.96) translateZ(0);
+}
+
+.act .ic{
+  width:38px;
+  height:38px;
+  border-radius:11px;
+  display:grid;
+  place-items:center;
+  background:radial-gradient(circle at 30% 25%,rgba(245,215,122,.25),rgba(212,175,55,.08));
+  box-shadow:inset 0 0 0 1px rgba(212,175,55,.3);
+}
+
+.act .ic svg{
+  width:19px;
+  height:19px;
+  stroke:var(--gold-light);
+}
+
+.act span{
+  font-size:11px;
+  color:var(--muted);
+}
+
+/* ================= PANEL ================= */
+
+.panel{
+  width:min(92vw,460px);
+  transform:translateZ(0);
+}
+
+.panel h2{
+  font-size:13px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:14px;
+  font-weight:600;
+}
+
+.tx{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:13px 4px;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  cursor:pointer;
+  transition:background .18s;
+  will-change:background;
+}
+
+.tx:hover{
+  background:rgba(212,175,55,.035);
+}
+
+.tx .tic{
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  flex:none;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.01));
+  box-shadow:inset 0 0 0 1px rgba(212,175,55,.18);
+}
+
+.tx .tic svg{
+  width:20px;
+  height:20px;
+  stroke:var(--gold-light);
+}
+
+.tx .info{
+  flex:1;
+  min-width:0;
+}
+
+.tx .info .t{
+  font-size:14px;
+  font-weight:600;
+  color:var(--text);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.tx .info .d{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+.tx .sum{
+  font-size:14px;
+  font-weight:700;
+  font-variant-numeric:tabular-nums;
+}
+
+.tx .sum.minus{
+  color:var(--text);
+}
+
+.tx .sum.plus{
+  color:var(--green);
+}
+
+.empty{
+  color:var(--muted);
+  font-size:13px;
+  padding:15px 0;
+}
+
+/* ================= QR PAYMENTS ================= */
+.payment-modal-card{width:min(100%,470px)}
+.payment-intro,.payment-note,.payment-status,.payment-expiry{color:var(--muted);font-size:13px;line-height:1.55}
+.payment-intro{margin-bottom:16px}
+.payment-amount-wrap{display:flex;align-items:center;gap:8px}
+.payment-amount-wrap>span{font-size:22px;font-weight:800;color:var(--gold-light)}
+.payment-amount-input{flex:1;min-width:0;font-size:24px;font-weight:800}
+.payment-note{margin:12px 0 16px;padding:11px 12px;border:1px solid rgba(212,175,55,.14);border-radius:12px;background:rgba(212,175,55,.04)}
+.payment-secondary-btn{margin-top:10px;width:100%}
+.payment-qr-title{text-align:center;font-size:18px;font-weight:800;color:var(--gold-light);margin-bottom:14px}
+.payment-summary{display:grid;gap:8px;margin-bottom:14px}
+.payment-summary>div{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06)}
+.payment-summary span{color:var(--muted)}
+.payment-summary b{max-width:65%;text-align:right;overflow-wrap:anywhere}
+.payment-qr-box{width:min(78vw,320px);aspect-ratio:1;margin:14px auto;padding:12px;background:#fff;border-radius:18px;display:grid;place-items:center;box-shadow:0 18px 50px rgba(0,0,0,.4)}
+.payment-qr-box img{display:block;width:100%;height:100%;object-fit:contain}
+.payment-expiry{text-align:center;margin-bottom:10px}
+.scanner-frame{position:relative;width:100%;aspect-ratio:4/3;border-radius:18px;overflow:hidden;background:#050505;border:1px solid rgba(212,175,55,.25)}
+.scanner-frame video{width:100%;height:100%;object-fit:cover}
+.scanner-corners{position:absolute;inset:16%;border:2px solid rgba(240,210,100,.9);border-radius:18px;box-shadow:0 0 30px rgba(212,175,55,.2) inset}
+@media(max-width:360px){.payment-modal-card{padding:16px}.payment-qr-box{width:min(72vw,280px)}}
+
+/* ================= MODALS ================= */
+
+.modal{
+  position:fixed;
+  inset:0;
+  z-index:500;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:
+    max(16px, env(safe-area-inset-top, 0px))
+    max(12px, 3.5vw)
+    max(16px, env(safe-area-inset-bottom, 0px));
+  background:rgba(0,0,0,.75);
+  backdrop-filter:blur(10px);
+  transform:translateZ(0);
+}
+
+.modal-card{
+  width:min(100%,460px);
+  max-height:calc(100dvh - max(24px, env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px)));
+  max-height:calc(100svh - max(24px, env(safe-area-inset-top, 0px) + env(safe-area-inset-bottom, 0px)));
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  border-radius:25px;
+  border:1px solid rgba(212,175,55,.22);
+  background:linear-gradient(145deg,#171717,#080808);
+  box-shadow:0 30px 100px rgba(0,0,0,.75);
+  padding:22px;
+  animation:modalIn .28s cubic-bezier(.2,.8,.2,1);
+  will-change:transform,opacity;
+  transform:translateZ(0);
+}
+
+@keyframes modalIn{
+  from{opacity:0;transform:translateY(28px) translateZ(0)}
+  to{opacity:1;transform:none}
+}
+
+.modal-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:18px;
+}
+
+.modal-head h3{
+  font-size:18px;
+  font-weight:700;
+  color:var(--gold-light);
+}
+
+.close{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04);
+  cursor:pointer;
+  color:var(--muted);
+  display:grid;
+  place-items:center;
+  font-size:18px;
+  transition:background .15s,color .15s;
+}
+
+.close:hover{
+  background:rgba(255,255,255,.1);
+  color:var(--text);
+}
+
+.receiver{
+  display:flex;
+  align-items:center;
+  gap:13px;
+  padding:14px;
+  border-radius:16px;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(212,175,55,.14);
+  margin-top:12px;
+}
+
+.receiver-avatar{
+  width:46px;
+  height:46px;
+  border-radius:50%;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  flex:none;
+  background:linear-gradient(145deg,var(--gold-light),var(--gold-deep));
+  color:#171207;
+  font-weight:800;
+}
+
+.receiver-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.receiver-info{
+  min-width:0;
+}
+
+.receiver-name{
+  font-weight:700;
+}
+
+.receiver-meta{
+  color:var(--muted);
+  font-size:11px;
+  margin-top:4px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.search-results{
+  margin-top:10px;
+}
+
+.detail{
+  display:grid;
+  gap:10px;
+}
+
+.detail-row{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  padding:11px 0;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.detail-row span:first-child{
+  color:var(--muted);
+}
+
+.detail-row span:last-child{
+  text-align:right;
+}
+
+.amount-large{
+  text-align:center;
+  font-size:34px;
+  font-weight:800;
+  margin:10px 0 20px;
+  color:var(--gold-light);
+}
+
+.status{
+  text-align:center;
+  margin-top:10px;
+  font-size:12px;
+  color:var(--muted);
+}
+
+/* ================= PROFILE & DEVICES MODAL ================= */
+
+.profile-card-header{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:16px;
+  border-radius:18px;
+  background:rgba(212,175,55,.05);
+  border:1px solid rgba(212,175,55,.18);
+  margin-bottom:20px;
+}
+
+.profile-avatar-large{
+  width:68px;
+  height:68px;
+  border-radius:50%;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  font-size:24px;
+  font-weight:800;
+  background:linear-gradient(145deg,var(--gold-light),var(--gold-deep));
+  color:#171207;
+  border:2px solid rgba(212,175,55,.4);
+  cursor:pointer;
+  flex:none;
+}
+
+.profile-avatar-large img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.profile-header-info{
+  min-width:0;
+  flex:1;
+}
+
+.profile-header-name{
+  font-size:17px;
+  font-weight:700;
+  color:var(--text);
+}
+
+.profile-header-id{
+  font-size:12px;
+  color:var(--gold);
+  margin-top:3px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.copy-id-chip{
+  background:rgba(212,175,55,.15);
+  padding:2px 7px;
+  border-radius:8px;
+  font-size:10px;
+  cursor:pointer;
+  color:var(--gold-light);
+}
+
+/* PIN BOX IN PROFILE */
+.profile-pin-box{
+  padding:16px;
+  border-radius:16px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(212,175,55,.18);
+  margin-bottom:20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.pin-info-label{
+  font-size:11px;
+  color:var(--muted);
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+
+.pin-value-container{
+  margin-top:4px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.pin-value-text{
+  font-family:monospace;
+  font-size:22px;
+  font-weight:800;
+  letter-spacing:4px;
+  color:var(--gold-light);
+  cursor:pointer;
+}
+
+.pin-toggle-btn{
+  border:1px solid rgba(212,175,55,.3);
+  background:rgba(212,175,55,.1);
+  color:var(--gold-light);
+  padding:6px 12px;
+  border-radius:10px;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  transition:background .18s;
+}
+
+.pin-toggle-btn:hover{
+  background:rgba(212,175,55,.2);
+}
+
+/* DEVICES SECTION */
+.devices-section{
+  margin-top:10px;
+}
+
+.devices-section-title{
+  font-size:12px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:12px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.devices-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.device-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px;
+  border-radius:15px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+  transition:background .18s,border-color .18s;
+}
+
+.device-item.current-device{
+  border-color:rgba(95,207,128,.3);
+  background:rgba(95,207,128,.04);
+}
+
+.device-main{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+.device-meta{
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+}
+
+.device-name,
+.device-os,
+.device-status{
+  min-width:0;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+.device-item > div:last-child{
+  flex:none;
+  max-width:35%;
+  text-align:right;
+}
+
+
+.device-icon{
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  background:rgba(255,255,255,.05);
+  display:grid;
+  place-items:center;
+  flex:none;
+}
+
+.device-icon svg{
+  width:18px;
+  height:18px;
+  stroke:var(--gold);
+}
+
+.device-meta{
+  min-width:0;
+}
+
+.device-name{
+  font-size:14px;
+  font-weight:700;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.device-os{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+.device-status{
+  font-size:11px;
+  margin-top:3px;
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+
+.status-online{
+  color:var(--green);
+}
+
+.status-offline{
+  color:var(--muted);
+}
+
+.revoke-session-btn{
+  border:1px solid rgba(255,104,104,.3);
+  background:rgba(255,104,104,.08);
+  color:var(--red);
+  padding:6px 10px;
+  border-radius:10px;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+  transition:background .15s;
+  white-space:nowrap;
+}
+
+.revoke-session-btn:hover{
+  background:rgba(255,104,104,.2);
+}
+
+/* ================= PROFILE SECTIONS & AUTO-UPDATE ================= */
+
+.profile-section-card{
+  margin-top:16px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(212,175,55,.18);
+  border-radius:18px;
+  padding:15px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.profile-section-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.profile-section-title{
+  font-size:13px;
+  font-weight:700;
+  color:#f1f5f9;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  letter-spacing:.3px;
+}
+
+.badge-chip{
+  font-size:11px;
+  font-weight:700;
+  padding:3px 9px;
+  border-radius:12px;
+  background:rgba(212,175,55,.15);
+  border:1px solid rgba(212,175,55,.3);
+  color:var(--gold);
+}
+
+.profile-section-hint{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.45;
+}
+
+.share-app-action-btn{
+  margin-top:2px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  font-size:13px;
+  width:100%;
+}
+
+.share-app-action-btn svg{
+  width:18px;
+  height:18px;
+  stroke:currentColor;
+}
+
+.update-perm-box{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.02);
+  gap:10px;
+  transition:border-color .2s, background .2s;
+}
+
+.update-perm-box.perm-granted{
+  border-color:rgba(95,207,128,.35);
+  background:rgba(95,207,128,.05);
+}
+
+.update-perm-box.perm-needed{
+  border-color:rgba(255,183,77,.4);
+  background:rgba(255,183,77,.06);
+}
+
+.update-perm-text-col{
+  min-width:0;
+  flex:1;
+}
+
+.update-perm-status{
+  font-size:13px;
+  font-weight:700;
+  color:#f1f5f9;
+}
+
+.update-perm-box.perm-granted .update-perm-status{
+  color:var(--green);
+}
+
+.update-perm-box.perm-needed .update-perm-status{
+  color:#ffb74d;
+}
+
+.update-perm-subtext{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+.perm-btn{
+  flex:none;
+  padding:7px 12px;
+  border-radius:10px;
+  border:1px solid rgba(212,175,55,.4);
+  background:rgba(212,175,55,.12);
+  color:var(--gold);
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+  transition:all .18s;
+  white-space:nowrap;
+  min-height:36px;
+}
+
+.perm-btn:hover{
+  background:rgba(212,175,55,.25);
+  border-color:var(--gold);
+}
+
+.setting-toggle-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:10px 4px;
+  gap:12px;
+}
+
+.toggle-title{
+  font-size:13px;
+  font-weight:600;
+  color:var(--text);
+}
+
+.toggle-desc{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+.switch-ui{
+  position:relative;
+  display:inline-block;
+  width:46px;
+  height:26px;
+  flex:none;
+}
+
+.switch-ui input{
+  opacity:0;
+  width:0;
+  height:0;
+}
+
+.switch-slider{
+  position:absolute;
+  cursor:pointer;
+  top:0;left:0;right:0;bottom:0;
+  background:#262626;
+  border:1px solid rgba(255,255,255,.15);
+  transition:.25s;
+  border-radius:26px;
+}
+
+.switch-slider:before{
+  position:absolute;
+  content:"";
+  height:18px;
+  width:18px;
+  left:3px;
+  bottom:3px;
+  background:#a1a1aa;
+  transition:.25s;
+  border-radius:50%;
+}
+
+.switch-ui input:checked + .switch-slider{
+  background:linear-gradient(135deg,rgba(212,175,55,.35),rgba(255,215,0,.45));
+  border-color:var(--gold);
+}
+
+.switch-ui input:checked + .switch-slider:before{
+  transform:translateX(20px);
+  background:var(--gold);
+  box-shadow:0 0 10px rgba(212,175,55,.6);
+}
+
+.check-update-btn{
+  margin-top:4px;
+  font-size:12px;
+  padding:10px 14px;
+  width:100%;
+}
+
+/* ================= UPDATE MODAL ================= */
+
+.app-update-body{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.update-version-hero{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  padding:14px 10px;
+  background:rgba(212,175,55,.05);
+  border:1px solid rgba(212,175,55,.2);
+  border-radius:16px;
+}
+
+.ver-badge{
+  font-size:13px;
+  font-weight:700;
+  padding:4px 12px;
+  border-radius:12px;
+}
+
+.current-ver{
+  background:rgba(255,255,255,.07);
+  color:var(--muted);
+  border:1px solid rgba(255,255,255,.1);
+}
+
+.ver-arrow{
+  color:var(--gold);
+  font-size:16px;
+}
+
+.latest-ver{
+  background:rgba(95,207,128,.15);
+  color:var(--green);
+  border:1px solid rgba(95,207,128,.4);
+}
+
+.update-notes-box{
+  background:rgba(0,0,0,.3);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;
+  padding:12px 14px;
+}
+
+.update-notes-title{
+  font-size:12px;
+  font-weight:700;
+  color:var(--gold);
+  text-transform:uppercase;
+  letter-spacing:.8px;
+  margin-bottom:6px;
+}
+
+.update-notes-text{
+  font-size:13px;
+  color:var(--text);
+  line-height:1.5;
+  white-space:pre-line;
+}
+
+.perm-warning-banner{
+  background:rgba(255,183,77,.1);
+  border:1px solid rgba(255,183,77,.35);
+  border-radius:12px;
+  padding:10px 12px;
+  font-size:12px;
+  color:#ffcc80;
+  line-height:1.45;
+}
+
+.update-progress-container{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:6px;
+}
+
+.update-progress-bar{
+  width:100%;
+  height:10px;
+  background:rgba(255,255,255,.08);
+  border-radius:6px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+}
+
+.update-progress-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--gold),#ffe082);
+  box-shadow:0 0 10px rgba(212,175,55,.5);
+  transition:width .2s ease;
+}
+
+.update-progress-label{
+  font-size:12px;
+  color:var(--gold);
+  font-weight:600;
+  text-align:center;
+}
+
+.update-auto-close-hint{
+  font-size:12px;
+  color:var(--green);
+  font-weight:700;
+  text-align:center;
+  padding:8px;
+  border-radius:10px;
+  background:rgba(95,207,128,.1);
+  border:1px solid rgba(95,207,128,.25);
+  animation:pulseGreen 1.5s infinite;
+}
+
+@keyframes pulseGreen{
+  0%,100%{opacity:1}
+  50%{opacity:.6}
+}
+
+.gold-btn-sm{
+  border:none;
+  border-radius:10px;
+  padding:8px 14px;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  background:linear-gradient(135deg,var(--gold-light),var(--gold-deep));
+  color:#111;
+  transition:transform .15s,box-shadow .15s;
+}
+
+.gold-btn-sm:hover{
+  transform:scale(1.02);
+  box-shadow:0 0 12px rgba(212,175,55,.4);
+}
+
+/* ================= TOAST ================= */
+
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:25px;
+  z-index:2000;
+  transform:translate(-50%,20px) translateZ(0);
+  opacity:0;
+  pointer-events:none;
+  padding:12px 17px;
+  border-radius:13px;
+  background:#171717;
+  border:1px solid rgba(212,175,55,.25);
+  box-shadow:0 15px 40px rgba(0,0,0,.5);
+  color:var(--text);
+  font-size:13px;
+  transition:opacity .22s,transform .22s;
+  max-width:90vw;
+  text-align:center;
+}
+
+.toast.show{
+  opacity:1;
+  transform:translate(-50%,0) translateZ(0);
+}
+
+.toast.error{
+  border-color:rgba(255,104,104,.35);
+}
+
+@media(max-width:430px){
+  .actions{
+    gap:7px;
+  }
+
+  .act{
+    padding:12px 4px;
+  }
+
+  .front .row-bot{
+    gap:5px;
+  }
+
+  .network{
+    font-size:14px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .card,
+  .welcome-logo,
+  .flip-hint svg{
+    animation:none!important;
+    transition:none!important;
+  }
+}
+
+/* =========================================================
+   MRFEAST BANK — PREMIUM MOBILE / VISUAL LAYER
+   Keeps the existing functionality intact.
+========================================================= */
+:root{
+  --gold:#d4af37;
+  --gold-light:#ffe7a0;
+  --gold-bright:#fff1bd;
+  --gold-deep:#8f6a18;
+  --ink:#070706;
+  --glass:rgba(18,17,13,.78);
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+  --safe-l:env(safe-area-inset-left,0px);
+  --safe-r:env(safe-area-inset-right,0px);
+}
+
+html{
+  min-height:100%;
+  background:#030303;
+  overflow-x:hidden;
+  overscroll-behavior-x:none;
+}
+
+body{
+  min-height:100dvh;
+  min-height:100svh;
+  font-family:"Avenir Next","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+  letter-spacing:.01em;
+  background:
+    radial-gradient(900px 520px at 8% 8%,rgba(212,175,55,.12),transparent 62%),
+    radial-gradient(800px 500px at 94% 28%,rgba(126,92,18,.11),transparent 64%),
+    radial-gradient(900px 700px at 50% 110%,rgba(212,175,55,.08),transparent 66%),
+    linear-gradient(145deg,#080806 0%,#030303 48%,#0b0904 100%);
+}
+
+body.modal-open{
+  overflow:hidden;
+  overscroll-behavior:none;
+}
+
+.auth-screen{
+  min-height:100dvh;
+  min-height:100svh;
+  padding:
+    max(18px,var(--safe-t))
+    max(16px,var(--safe-r))
+    max(18px,var(--safe-b))
+    max(16px,var(--safe-l));
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  background:
+    radial-gradient(600px 360px at 50% 8%,rgba(255,220,118,.13),transparent 68%),
+    radial-gradient(500px 500px at 0% 100%,rgba(137,95,12,.10),transparent 70%),
+    linear-gradient(145deg,#080806,#030303 60%,#090704);
+}
+
+.auth-screen::before,
+.modal::before{
+  content:"";
+  position:absolute;
+  inset:-30%;
+  pointer-events:none;
+  background:
+    conic-gradient(from 0deg at 50% 50%,
+      transparent 0deg,
+      rgba(212,175,55,.045) 55deg,
+      transparent 115deg,
+      rgba(255,226,135,.035) 190deg,
+      transparent 260deg,
+      rgba(212,175,55,.04) 320deg,
+      transparent 360deg);
+  animation:ambientRotate 18s linear infinite;
+}
+
+@keyframes ambientRotate{
+  to{transform:rotate(360deg)}
+}
+
+.auth-box{
+  position:relative;
+  isolation:isolate;
+  width:min(100%,430px);
+  max-width:430px;
+  max-height:calc(100dvh - 28px - var(--safe-t) - var(--safe-b));
+  overflow:auto;
+  padding:clamp(24px,6vw,34px) clamp(18px,6vw,28px) clamp(22px,5vw,30px);
+  border:1px solid rgba(212,175,55,.34);
+  border-radius:30px;
+  background:
+    linear-gradient(145deg,rgba(28,26,20,.92),rgba(8,8,7,.96) 58%,rgba(20,16,7,.92)),
+    rgba(10,10,9,.95);
+  box-shadow:
+    0 35px 100px rgba(0,0,0,.78),
+    0 0 0 1px rgba(255,255,255,.025),
+    0 0 60px rgba(212,175,55,.06),
+    inset 0 1px 0 rgba(255,255,255,.08);
+  backdrop-filter:blur(24px) saturate(125%);
+}
+
+.auth-box::before{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  border-radius:inherit;
+  padding:1px;
+  background:linear-gradient(115deg,
+    transparent 12%,
+    rgba(255,231,160,.75) 28%,
+    rgba(212,175,55,.18) 42%,
+    transparent 56%,
+    rgba(255,231,160,.45) 78%,
+    transparent 92%);
+  background-size:220% 100%;
+  animation:borderFlow 6s linear infinite;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  pointer-events:none;
+}
+
+@keyframes borderFlow{
+  to{background-position:-220% 0}
+}
+
+.auth-title,
+.welcome-bank,
+.modal-head h3,
+.profile-header-name,
+.balance .amount,
+.front .bank-name,
+.back .bank-name-tr,
+.network,
+.slogan{
+  background:linear-gradient(
+    110deg,
+    var(--gold-deep) 0%,
+    var(--gold-light) 24%,
+    #fff6d2 42%,
+    var(--gold) 58%,
+    var(--gold-bright) 76%,
+    var(--gold-deep) 100%
+  );
+  background-size:240% 100%;
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  color:transparent;
+  animation:textGradient 7s ease-in-out infinite alternate;
+}
+
+@keyframes textGradient{
+  from{background-position:0% 50%}
+  to{background-position:100% 50%}
+}
+
+.auth-title{
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(20px,5.4vw,27px);
+  line-height:1.08;
+  letter-spacing:.01em;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+.auth-subtitle,
+.auth-step,
+.field-label,
+.secondary-btn,
+.auth-btn,
+.gold-btn,
+.pin-display-box,
+.pin-display-value{
+  position:relative;
+  z-index:1;
+}
+
+.auth-subtitle{
+  font-size:clamp(13px,3.7vw,16px);
+}
+
+.field-label{
+  font-weight:800;
+  letter-spacing:1.7px;
+}
+
+.input{
+  min-height:52px;
+  border-color:rgba(212,175,55,.24);
+  background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.auth-btn,
+.gold-btn{
+  min-height:54px;
+  background:
+    linear-gradient(110deg,#9b7319,#d4af37 24%,#ffe79b 47%,#d4af37 70%,#8e6717);
+  background-size:240% 100%;
+  animation:goldButtonFlow 5s ease-in-out infinite alternate;
+  box-shadow:
+    0 12px 30px rgba(212,175,55,.16),
+    inset 0 1px 0 rgba(255,255,255,.35);
+}
+
+@keyframes goldButtonFlow{
+  from{background-position:0% 50%}
+  to{background-position:100% 50%}
+}
+
+.secondary-btn{
+  min-height:50px;
+  background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));
+  border-color:rgba(212,175,55,.20);
+}
+
+/* Premium bank card */
+.card-scene{
+  width:min(92vw,460px);
+  height:calc(min(92vw,460px)*.63);
+  max-width:460px;
+  max-height:290px;
+  perspective:1800px;
+  filter:drop-shadow(0 26px 42px rgba(0,0,0,.55));
+}
+
+.face{
+  border-radius:24px;
+  background:
+    radial-gradient(280px 170px at 18% 10%,rgba(255,227,135,.18),transparent 70%),
+    radial-gradient(300px 190px at 92% 88%,rgba(117,80,10,.18),transparent 72%),
+    linear-gradient(135deg,#1c1a13 0%,#0d0c09 43%,#050504 100%);
+  border:1px solid rgba(212,175,55,.30);
+  box-shadow:
+    0 35px 70px -20px rgba(0,0,0,.9),
+    0 0 0 1px rgba(255,255,255,.025),
+    0 0 36px rgba(212,175,55,.07),
+    inset 0 1px 0 rgba(255,255,255,.10);
+}
+
+.face::after{
+  content:"";
+  position:absolute;
+  inset:-80% -25%;
+  pointer-events:none;
+  background:linear-gradient(115deg,
+    transparent 38%,
+    rgba(255,239,181,.08) 46%,
+    rgba(255,255,255,.22) 50%,
+    rgba(255,239,181,.06) 54%,
+    transparent 62%);
+  transform:translateX(-60%) rotate(8deg);
+  animation:cardShine 7s ease-in-out infinite;
+}
+
+@keyframes cardShine{
+  0%,55%{transform:translateX(-70%) rotate(8deg)}
+  78%,100%{transform:translateX(70%) rotate(8deg)}
+}
+
+.chip{
+  background:
+    linear-gradient(135deg,#fff0ad 0%,#d4af37 42%,#8d681a 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(0,0,0,.25),
+    0 3px 10px rgba(0,0,0,.55),
+    0 0 16px rgba(212,175,55,.13);
+}
+
+.number{
+  text-shadow:0 2px 10px rgba(0,0,0,.75);
+  letter-spacing:clamp(2px,1vw,4px);
+}
+
+.modal{
+  min-height:100dvh;
+  min-height:100svh;
+  align-items:center;
+  justify-content:center;
+  padding:
+    max(14px,var(--safe-t))
+    max(14px,var(--safe-r))
+    max(14px,var(--safe-b))
+    max(14px,var(--safe-l));
+  overflow:hidden;
+  isolation:isolate;
+  background:rgba(0,0,0,.72);
+  backdrop-filter:blur(18px) saturate(120%);
+}
+
+.modal-card{
+  position:relative;
+  z-index:1;
+  width:min(100%,460px);
+  max-width:460px;
+  max-height:calc(100dvh - 28px - var(--safe-t) - var(--safe-b));
+  max-height:calc(100svh - 28px - var(--safe-t) - var(--safe-b));
+  overflow-y:auto;
+  touch-action:pan-y;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  border-radius:28px;
+  padding:clamp(18px,5vw,24px);
+  border:1px solid rgba(212,175,55,.32);
+  background:
+    radial-gradient(420px 220px at 100% 0%,rgba(212,175,55,.10),transparent 70%),
+    linear-gradient(145deg,rgba(27,26,20,.97),rgba(7,7,6,.98));
+  box-shadow:
+    0 35px 100px rgba(0,0,0,.82),
+    0 0 40px rgba(212,175,55,.06),
+    inset 0 1px 0 rgba(255,255,255,.07);
+  scrollbar-width:thin;
+  scrollbar-color:rgba(212,175,55,.55) transparent;
+}
+
+.modal-head{
+  position:sticky;
+  top:-1px;
+  z-index:4;
+  padding-bottom:12px;
+  margin-bottom:12px;
+  background:linear-gradient(to bottom,rgba(27,26,20,.99) 65%,rgba(27,26,20,0));
+}
+
+.modal-head h3{
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(19px,5.2vw,25px);
+  line-height:1.1;
+  letter-spacing:.01em;
+}
+
+.profile-card-header{
+  flex-wrap:wrap;
+  align-items:center;
+  min-width:0;
+}
+
+.profile-header-info{
+  min-width:0;
+  overflow:hidden;
+}
+
+.profile-header-name,
+.profile-header-id,
+.profile-card-header .upload-photo-btn{
+  max-width:100%;
+}
+
+.profile-header-name{
+  font-size:clamp(16px,4.8vw,20px);
+  overflow-wrap:anywhere;
+}
+
+.profile-header-id{
+  flex-wrap:wrap;
+}
+
+.profile-pin-box{
+  flex-wrap:wrap;
+  gap:12px;
+}
+
+.pin-value-container{
+  min-width:0;
+}
+
+.pin-value-text{
+  font-size:clamp(18px,5vw,22px);
+}
+
+
+.balance .amount.balance-compact{
+  font-size:clamp(22px,8vw,40px);
+  letter-spacing:-.035em;
+}
+
+.balance .amount.balance-ultra{
+  font-size:clamp(20px,6.5vw,34px);
+  letter-spacing:-.045em;
+}
+
+.front .meta{
+  min-width:0;
+  flex:1 1 0;
+}
+
+.front .meta .v{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.front .network{
+  flex:none;
+}
+
+.recipient-search-row{
+  display:flex;
+  gap:8px;
+  width:100%;
+  min-width:0;
+}
+
+.recipient-search-row .input{
+  min-width:0;
+  flex:1 1 auto;
+}
+
+.recipient-search-row .gold-btn{
+  flex:0 0 auto;
+  width:auto;
+  white-space:nowrap;
+}
+
+@media(max-width:360px){
+  .recipient-search-row{gap:6px}
+  .recipient-search-row .gold-btn{padding-inline:12px;font-size:12px}
+  .front{padding:14px}
+  .front .row-top{gap:7px}
+  .front .row-top .logo{width:29px;height:29px}
+  .front .bank-name{font-size:13px}
+  .number{font-size:15px;letter-spacing:2px}
+  .front .row-bot{gap:5px}
+  .meta .v{font-size:11px}
+  .network{font-size:14px}
+}
+
+@media(max-height:620px){
+  .auth-screen{align-items:flex-start}
+  .auth-box{margin-block:10px;max-height:calc(100dvh - 20px);max-height:calc(100svh - 20px)}
+  .modal-card{max-height:calc(100dvh - 20px);max-height:calc(100svh - 20px)}
+  .welcome-inner{padding:18px}
+  .welcome-logo{width:76px;height:76px}
+}
+
+@media(max-width:600px){
+  .topbar{
+    padding:
+      max(12px,var(--safe-t))
+      max(13px,4vw)
+      12px
+      max(13px,4vw);
+  }
+
+  .brand{
+    min-width:0;
+  }
+
+  .brand span{
+    font-size:clamp(12px,3.5vw,15px);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .top-actions{
+    gap:7px;
+  }
+
+  .status-badge{
+    padding:4px 7px;
+    font-size:10px;
+  }
+
+  main{
+    width:100%;
+    padding:
+      8px max(13px,4vw)
+      calc(28px + var(--safe-b));
+    gap:20px;
+  }
+
+  .balance{
+    width:100%;
+    max-width:100%;
+  }
+
+  .balance .amount{
+    width:min(100%, calc(100vw - 26px));
+    margin-inline:auto;
+    font-size:clamp(26px,10vw,50px);
+    letter-spacing:-.02em;
+  }
+
+  .actions{
+    width:100%;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:8px;
+  }
+
+  .act{
+    min-width:0;
+    padding:12px 4px;
+    border-radius:15px;
+  }
+
+  .act .ic{
+    width:36px;
+    height:36px;
+  }
+
+  .act span{
+    font-size:clamp(9px,2.8vw,11px);
+    white-space:nowrap;
+  }
+
+  .panel{
+    width:100%;
+  }
+
+  .card-scene{
+    width:min(92vw,460px);
+    height:calc(min(92vw,460px)*.63);
+  }
+
+  .modal-card{
+    width:100%;
+    max-height:calc(100dvh - 24px);
+    max-height:calc(100svh - 24px);
+    border-radius:24px;
+  }
+}
+
+@media(max-width:380px){
+  .auth-box{
+    border-radius:25px;
+    padding-left:16px;
+    padding-right:16px;
+  }
+
+  .auth-title{
+    font-size:20px;
+  }
+
+  .pin-display-value{
+    font-size:27px;
+    letter-spacing:5px;
+  }
+
+  .profile-card-header{
+    gap:10px;
+    padding:13px;
+  }
+
+  .profile-avatar-large{
+    width:58px;
+    height:58px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .auth-screen::before,
+  .modal::before,
+  .auth-box::before,
+  .auth-title,
+  .welcome-bank,
+  .modal-head h3,
+  .profile-header-name,
+  .balance .amount,
+  .front .bank-name,
+  .back .bank-name-tr,
+  .network,
+  .slogan,
+  .auth-btn,
+  .gold-btn,
+  .face::after{
+    animation:none!important;
+  }
+}
+
+
+/* Final mobile hardening */
+@media(max-width:430px){
+  .devices-section-title{
+    gap:10px;
+  }
+  .devices-section-title > span:first-child{
+    min-width:0;
+    flex:1 1 auto;
+  }
+  .devices-section-title > span:last-child{
+    flex:none;
+    white-space:nowrap;
+  }
+  .device-item{
+    min-width:0;
+    gap:8px;
+  }
+  .device-main{
+    min-width:0;
+    flex:1 1 auto;
+  }
+  .device-name{
+    min-width:0;
+    flex-wrap:wrap;
+  }
+  .device-name > span{
+    white-space:normal;
+  }
+  .device-item > div:last-child{
+    max-width:none;
+  }
+}
+
+@media(max-width:340px){
+  main{
+    padding-left:10px;
+    padding-right:10px;
+  }
+  .actions{
+    gap:5px;
+  }
+  .act{
+    padding-left:2px;
+    padding-right:2px;
+  }
+  .act span{
+    font-size:9px;
+  }
+  .modal-card{
+    padding:16px;
+  }
+  .profile-card-header{
+    padding:12px;
+    gap:10px;
+  }
+  .profile-header-name{
+    font-size:15px;
+  }
+  .profile-pin-box{
+    padding:12px;
+  }
+}
+
+
+/* ================= OFFICIAL BANK / DEPOSIT UI ================= */
+.deposit-modal-card{
+  width:min(560px, calc(100vw - 28px));
+}
+.deposit-notice,.deposit-bonus-card{
+  border:1px solid rgba(214,170,57,.24);
+  border-radius:20px;
+  padding:18px;
+  background:rgba(255,255,255,.025);
+}
+.deposit-notice{margin-bottom:12px;}
+.deposit-notice-title{font-size:15px;font-weight:800;color:var(--gold-light);margin-bottom:7px;}
+.deposit-notice-text{font-size:13px;line-height:1.6;color:var(--muted);}
+.deposit-bonus-card{text-align:center;margin-bottom:14px;}
+.deposit-bonus-label{font-size:11px;text-transform:uppercase;letter-spacing:.16em;color:var(--muted);}
+.deposit-bonus-value{font-size:42px;line-height:1.05;font-weight:900;margin:8px 0;background:linear-gradient(90deg,var(--gold),#fff0a8,var(--gold));background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:gradientText 5s linear infinite;}
+.deposit-bonus-status{font-size:13px;color:var(--text);font-weight:700;}
+.deposit-next{font-size:11px;color:var(--muted);margin-top:5px;min-height:16px;}
+@media (max-width:380px){
+  .deposit-modal-card{width:calc(100vw - 20px);}
+  .deposit-notice,.deposit-bonus-card{padding:14px;}
+  .deposit-bonus-value{font-size:36px;}
+}
+
+
+
+/* ================= RESPONSIVE VIEWPORT PATCH ================= */
+:root{--safe-t:env(safe-area-inset-top,0px);--safe-r:env(safe-area-inset-right,0px);--safe-l:env(safe-area-inset-left,0px)}
+html{width:100%;min-height:100%;overflow-x:hidden;}
+body{width:100%;min-width:0;padding-left:var(--safe-l);padding-right:var(--safe-r);}
+.auth-screen{overflow-y:auto;overscroll-behavior:contain;padding:max(12px,var(--safe-t)) 14px calc(12px + var(--safe-b));}
+.auth-box{flex-shrink:0;}
+.modal{overflow-y:auto;overscroll-behavior:contain;padding: max(10px,var(--safe-t)) 10px calc(10px + var(--safe-b));}
+.modal-card{width:min(100%,560px);max-width:100%;max-height:calc(100dvh - var(--safe-t) - var(--safe-b) - 20px);max-height:calc(100svh - var(--safe-t) - var(--safe-b) - 20px);overflow-y:auto;overscroll-behavior:contain;}
+main{min-width:0;gap:clamp(12px,3.5vh,26px);padding-top:clamp(4px,1.5vh,8px);}
+.actions{max-width:calc(100vw - 24px);}
+button,.act,.topbar-icon-btn{touch-action:manipulation;}
+@media(max-width:430px){
+  body{padding-bottom:calc(12px + var(--safe-b));}
+  main{padding-left:10px;padding-right:10px;gap:clamp(10px,2.6vh,18px);}
+  .card-scene{width:min(92vw,460px);height:calc(min(92vw,460px)*.63);}
+  .actions{width:calc(100vw - 20px);gap:clamp(5px,1.8vw,10px);}
+  .auth-screen{padding-left:12px;padding-right:12px;}
+  .auth-box{padding:clamp(18px,5vw,32px) clamp(14px,5vw,26px);}
+}
+@media(max-height:740px){
+  body{padding-bottom:calc(8px + var(--safe-b));}
+  main{gap:clamp(8px,1.8vh,16px);}
+  .balance .label{margin-bottom:6px;}
+  .balance .delta{margin-top:7px;}
+  .modal-card{max-height:calc(100dvh - var(--safe-t) - var(--safe-b) - 12px);max-height:calc(100svh - var(--safe-t) - var(--safe-b) - 12px);}
+}
+@media(max-height:620px) and (orientation:landscape){
+  .topbar{padding-top:max(6px,var(--safe-t));padding-bottom:6px;}
+  main{gap:8px;padding-top:4px;}
+  .card-scene{width:min(54vw,360px);height:calc(min(54vw,360px)*.63);}
+  .actions{margin-bottom:4px;}
+}
+
+/* ================= TELEGRAM MINI APP + PRIVACY AGREEMENT ================= */
+html, body { width:100%; min-height:100%; }
+body.telegram-mini-app { min-height:100dvh; padding-bottom:calc(24px + var(--safe-b)); }
+#agreementScreen, #agreementDetails, #agreementRefused {
+  position:fixed; inset:0; z-index:5000; display:flex; align-items:center;
+  justify-content:center; padding:20px; background:rgba(3,3,3,.98);
+  overflow-y:auto; overscroll-behavior:contain;
+}
+.agreement-card {
+  width:min(100%,520px); max-height:calc(100dvh - 40px); overflow-y:auto;
+  padding:26px 22px; border:1px solid rgba(212,175,55,.35); border-radius:24px;
+  background:linear-gradient(145deg,#191919,#070707);
+  box-shadow:0 25px 90px rgba(0,0,0,.8), inset 0 1px rgba(255,255,255,.04);
+}
+.agreement-title { color:var(--gold-light); font-size:22px; font-weight:800; margin-bottom:16px; }
+.agreement-copy { color:var(--text); font-size:14px; line-height:1.65; white-space:pre-line; }
+.agreement-copy a { color:var(--gold-light); text-decoration:underline; cursor:pointer; }
+.agreement-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:22px; }
+.agreement-accept,.agreement-decline {
+  min-height:46px; padding:12px 10px; border-radius:13px; font-weight:750; cursor:pointer;
+}
+.agreement-accept { border:0; color:#171207; background:linear-gradient(135deg,var(--gold-light),var(--gold),var(--gold-deep)); }
+.agreement-decline { border:1px solid rgba(255,104,104,.4); color:#ff8585; background:rgba(255,104,104,.08); }
+.agreement-detail-card { position:relative; padding-bottom:66px; }
+.agreement-detail-close {
+  position:absolute; right:18px; bottom:16px; width:40px; height:40px; border-radius:50%;
+  border:1px solid rgba(255,255,255,.16); color:var(--text); background:#222;
+  font-size:22px; cursor:pointer;
+}
+.agreement-warning { margin-top:14px; padding:11px 12px; border-radius:12px;
+  border:1px solid rgba(212,175,55,.2); color:var(--muted); font-size:12px; line-height:1.5; }
+@media(max-width:380px) {
+ .agreement-card { padding:22px 17px; }
+ .agreement-title { font-size:20px; }
+ .agreement-actions { grid-template-columns:1fr; }
+}
+
+
+</style>
+</head>
+
+<body>
+
+<!-- ================= FIRST-RUN AGREEMENT ================= -->
+<section id="agreementScreen" role="dialog" aria-modal="true" aria-labelledby="agreementTitle">
+  <div class="agreement-card">
+    <div class="agreement-title" id="agreementTitle">Предупредительное соглашение</div>
+    <div class="agreement-copy">Данный банк защищен протоколом FeastAntiSpy который шифрует всю ваше соединение по военному стандарту AES-256
+Но стоит учитывать что веб версия соединяется и работает с ботом переходником(аналитический сбор вашего местоположения,номера телефона и прочих данных на базе Telegram API) чтобы предотвращать возможность хакеров/DDOS атаки и прочих нежелательных факторов
+
+Мы ценим вашу приватность и безопастность поэтому все ваши данные полностью анонимны и передаются в зашифрованном виде.
+
+Ниже вы даете соглашение на обработку <a href="#" id="openDataDetails">ДАННЫХ</a> при дальнейшем использывании банка.</div>
+    <div class="agreement-warning">Перед согласием ознакомьтесь с перечнем данных. Доступ к данным Telegram и устройству зависит от доступных API и выданных разрешений.</div>
+    <div class="agreement-actions">
+      <button class="agreement-accept" id="agreementAccept">Соглашаюсь</button>
+      <button class="agreement-decline" id="agreementDecline">Отказываюсь</button>
+    </div>
+  </div>
+</section>
+<section id="agreementDetails" class="hidden" role="dialog" aria-modal="true" aria-labelledby="dataDetailsTitle">
+  <div class="agreement-card agreement-detail-card">
+    <div class="agreement-title" id="dataDetailsTitle">Обработка данных</div>
+    <div class="agreement-copy">Сбор данных таких как:
+● Точное местоположение (город, страна, дом) в обход VPN и Proxy трафику
+● Сбор аналитики и поведения в веб версии банка для определения попытки взлома/мошенничества
+● Ваш номер телефона и IP (в обход VPN и Proxy)</div>
+    <div class="agreement-warning">Важно:Это не все указанные ВОЗМОЖНЫЕ или ДЕЙСТВИТЕЛЬНЫЕ права для банка,все последующие изминения автоматически применяются к текущему соглашению, а соответственно вы автоматически соглашаетесь с новыми изминениями!</div>
+    <button class="agreement-detail-close" id="closeDataDetails" aria-label="Закрыть окно">×</button>
+  </div>
+</section>
+<section id="agreementRefused" class="hidden" role="dialog" aria-modal="true">
+  <div class="agreement-card">
+    <div class="agreement-title">Доступ не предоставлен</div>
+    <div class="agreement-copy">Вы отказались от соглашения. Банк не будет запущен. Чтобы продолжить, закройте Mini App и откройте его снова.</div>
+    <button class="agreement-decline" id="refusalClose" style="width:100%;margin-top:20px">Закрыть</button>
+  </div>
+</section>
+
+<!-- ================= SVG ICONS ================= -->
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+
+<linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="1">
+  <stop offset="0" stop-color="#f5d77a"/>
+  <stop offset=".55" stop-color="#d4af37"/>
+  <stop offset="1" stop-color="#9c7c2e"/>
+</linearGradient>
+
+<linearGradient id="ribbonGrad" x1="0" y1="1" x2="1" y2="0">
+  <stop offset="0" stop-color="#9c7c2e"/>
+  <stop offset=".5" stop-color="#f5d77a"/>
+  <stop offset="1" stop-color="#caa23a"/>
+</linearGradient>
+
+<symbol id="logo" viewBox="0 0 100 100">
+  <path fill="url(#goldGrad)"
+    d="M8 78 L30 24 L50 60 L70 24 L92 78 L78 78 L66 48 L50 78 L34 48 L22 78 Z"/>
+  <path fill="url(#goldGrad)" opacity=".85"
+    d="M30 78 L50 40 L70 78 L58 78 L50 62 L42 78 Z"/>
+</symbol>
+
+<symbol id="ribbon" viewBox="0 0 460 290" preserveAspectRatio="none">
+  <path
+    d="M-20 300 C140 230,300 150,480 40 L480 70 C300 185,150 262,-20 330 Z"
+    fill="url(#ribbonGrad)" opacity=".9"/>
+  <g stroke="url(#goldGrad)" stroke-width="1" opacity=".25">
+    <line x1="250" y1="290" x2="470" y2="120"/>
+    <line x1="290" y1="290" x2="480" y2="140"/>
+    <line x1="330" y1="290" x2="490" y2="165"/>
+    <line x1="370" y1="290" x2="500" y2="190"/>
+    <line x1="410" y1="290" x2="510" y2="215"/>
+    <line x1="210" y1="290" x2="460" y2="95"/>
+  </g>
+</symbol>
+
+<symbol id="contactless" viewBox="0 0 24 24">
+  <g fill="none" stroke="url(#goldGrad)" stroke-width="2" stroke-linecap="round">
+    <path d="M5 8a8 8 0 0 1 0 8"/>
+    <path d="M9 5a13 13 0 0 1 0 14"/>
+    <path d="M13 2.5a18 18 0 0 1 0 19"/>
+  </g>
+</symbol>
+
+</defs>
+</svg>
+
+<!-- ================= AUTH ================= -->
+
+<section class="auth-screen hidden" id="authScreen">
+
+  <div class="auth-box">
+
+    <svg class="auth-logo"><use href="#logo"/></svg>
+
+    <div class="auth-title">MrFeastProjectBank</div>
+    <div class="auth-subtitle" id="authSubtitle">
+      Вход в банковский профиль
+    </div>
+
+    <!-- CLEAN DIRECT PIN LOGIN ENTRY -->
+    <div class="auth-step" id="cleanEntryStep">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:18px;text-align:center;line-height:1.5;">
+        Безопасный доступ к счетам и банковским операциям
+      </div>
+
+      <button class="gold-btn" id="startPinAuthBtn">
+        Войти
+      </button>
+
+      <button class="secondary-btn" id="startNewAccountBtn">
+        Открыть счёт
+      </button>
+
+      <div style="margin-top:18px;text-align:center;font-size:11px;color:var(--muted);">
+        Защищённое соединение • Контроль операций
+      </div>
+    </div>
+
+    <!-- PIN CODE STEP (FOR REGISTRATION OR LOGIN) -->
+    <div class="auth-step hidden" id="pinStep">
+
+      <div class="pin-display-box" id="pinDisplayContainer">
+        <div style="font-size:12px;color:var(--gold-light);font-weight:700;" id="pinTitleText">
+          Ваш код доступа
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;" id="pinDescText">
+          Сохраните этот 6-значный код для входа:
+        </div>
+
+        <div class="pin-display-value" id="generatedPinDisplay">
+          ------
+        </div>
+
+        <button class="upload-photo-btn" id="copyGeneratedPinBtn" style="margin:6px auto 0;">
+          Скопировать код доступа
+        </button>
+      </div>
+
+      <label class="field-label" id="pinInputLabel">
+        Введите 6-значный код доступа
+      </label>
+
+      <input
+        id="pinOtpInput"
+        class="input otp"
+        inputmode="numeric"
+        maxlength="6"
+        autocomplete="one-time-code"
+        placeholder="••••••">
+
+      <button class="auth-btn" id="verifyPinBtn">
+        Продолжить
+      </button>
+
+      <button class="secondary-btn" id="backToEntryBtn" style="border:none;margin-top:6px;">
+        ← Назад
+      </button>
+
+    </div>
+
+    <!-- PROFILE SETUP STEP (WITH CUSTOM AVATAR UPLOAD) -->
+    <div class="auth-step hidden" id="profileStep">
+
+      <div class="avatar-section">
+        <label class="avatar-preview" id="avatarPreview" for="avatarInput" title="Нажмите, чтобы выбрать своё фото">
+          M
+        </label>
+        <input
+          id="avatarInput"
+          type="file"
+          accept="image/*"
+          hidden>
+
+        <div class="avatar-upload-actions">
+          <label class="upload-photo-btn" for="avatarInput">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+            Загрузить своё фото
+          </label>
+        </div>
+
+        <div class="avatar-presets">
+          <div class="preset-chip" data-emoji="🦁">🦁</div>
+          <div class="preset-chip" data-emoji="👑">👑</div>
+          <div class="preset-chip" data-emoji="💎">💎</div>
+          <div class="preset-chip" data-emoji="🦅">🦅</div>
+          <div class="preset-chip" data-emoji="⚡">⚡</div>
+          <div class="preset-chip" data-emoji="🛡️">🛡️</div>
+        </div>
+      </div>
+
+      <label class="field-label">Ваше имя</label>
+
+      <input
+        id="firstNameInput"
+        class="input"
+        autocomplete="given-name"
+        placeholder="Например: Александр">
+
+      <label class="field-label" style="margin-top:14px">
+        Фамилия — необязательно
+      </label>
+
+      <input
+        id="lastNameInput"
+        class="input"
+        autocomplete="family-name"
+        placeholder="Ваша фамилия">
+
+      <button class="auth-btn" id="createProfileBtn">
+        Создать профиль
+      </button>
+
+    </div>
+
+    <div class="auth-message" id="authMessage"></div>
+
+  </div>
+
+</section>
+
+<!-- ================= WELCOME ================= -->
+
+<section class="welcome-screen hidden" id="welcomeScreen">
+
+  <div class="welcome-inner">
+
+    <svg class="welcome-logo">
+      <use href="#logo"/>
+    </svg>
+
+    <div class="welcome-bank">
+      MrFeastProjectBank
+    </div>
+
+    <div class="welcome-greeting" id="welcomeGreeting">
+      Добрый день
+    </div>
+
+    <div class="welcome-name" id="welcomeName"></div>
+
+  </div>
+
+</section>
+
+<!-- ================= MAIN ================= -->
+
+<header class="topbar">
+
+  <div class="brand">
+    <svg class="logo">
+      <use href="#logo"/>
+    </svg>
+
+    <span>MrFeastProjectBank</span>
+  </div>
+
+  <div class="top-actions">
+    <button class="topbar-icon-btn" id="shareAppTopBtn" title="Поделиться приложением" aria-label="Поделиться приложением">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+      </svg>
+    </button>
+    <div class="status-badge" title="Статус банковской системы">
+      <div class="status-dot"></div>
+      <span>Онлайн</span>
+    </div>
+    <!-- Clicking avatar opens Profile and Devices Modal -->
+    <div class="avatar" id="avatar" title="Профиль и безопасность">M</div>
+  </div>
+
+</header>
+
+<main>
+
+<section class="balance">
+
+  <div class="label">
+    Общий баланс
+  </div>
+
+  <div class="amount">
+    <span class="cur">$</span>
+    <span id="balance">0.00</span>
+  </div>
+
+  <div class="delta">
+    Текущий остаток средств
+  </div>
+
+</section>
+
+<!-- CARD -->
+
+<div
+  class="card-scene"
+  id="cardScene"
+  role="button"
+  tabindex="0"
+  aria-label="Перевернуть карту">
+
+  <div class="card" id="card">
+
+    <div class="face front">
+
+      <svg class="ribbon">
+        <use href="#ribbon"/>
+      </svg>
+
+      <div class="row-top">
+
+        <svg class="logo">
+          <use href="#logo"/>
+        </svg>
+
+        <div class="bank-name">
+          MrFeastProjectBank
+        </div>
+
+      </div>
+
+      <div class="chip"></div>
+
+      <div class="number" id="cardNumber">
+        •••• •••• •••• ••••
+      </div>
+
+      <div class="row-bot">
+
+        <div class="meta">
+
+          <div class="k">
+            Держатель карты
+          </div>
+
+          <div class="v" id="holder">
+            —
+          </div>
+
+        </div>
+
+        <div class="meta">
+
+          <div class="k">
+            Идентификатор карты
+          </div>
+
+          <div class="v" id="universalId">
+            —
+          </div>
+
+        </div>
+
+        <div class="network">
+          VISA
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="face back">
+
+      <svg class="ribbon">
+        <use href="#ribbon"/>
+      </svg>
+
+      <div class="bank-name-tr">
+        MrFeastProjectBank
+      </div>
+
+      <div class="strip"></div>
+
+      <div class="sign-row">
+
+        <div style="flex:1">
+
+          <div class="sign-label">
+            Подпись держателя
+          </div>
+
+          <div class="sign-box" id="signature">
+            —
+          </div>
+
+        </div>
+
+        <div class="not-valid">
+          Действительна<br>только при наличии подписи
+        </div>
+
+        <svg class="contactless">
+          <use href="#contactless"/>
+        </svg>
+
+      </div>
+
+      <div class="bottom">
+
+        <div class="slogan">
+          Официальный банковский сервис<br>
+          MrFeastProjectBank
+        </div>
+
+        <svg class="logo-b">
+          <use href="#logo"/>
+        </svg>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+
+<!-- ACTIONS -->
+
+<nav class="actions">
+
+  <button class="act" id="depositBtn">
+
+    <span class="ic">
+      <svg viewBox="0 0 24 24" fill="none"
+        stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M12 5v14"/>
+        <path d="M5 12h14"/>
+      </svg>
+    </span>
+
+    <span>Пополнить</span>
+
+  </button>
+
+  <button class="act" id="transferBtn">
+
+    <span class="ic">
+      <svg viewBox="0 0 24 24" fill="none"
+        stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M5 12h14"/>
+        <path d="M13 6l6 6-6 6"/>
+      </svg>
+    </span>
+
+    <span>Перевод</span>
+
+  </button>
+
+  <button class="act" id="payBtn">
+
+    <span class="ic">
+      <svg viewBox="0 0 24 24" fill="none"
+        stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <rect x="3" y="5" width="18" height="14" rx="2"/>
+        <path d="M3 10h18"/>
+      </svg>
+    </span>
+
+    <span>Оплатить</span>
+
+  </button>
+
+  <button class="act" id="historyBtn">
+
+    <span class="ic">
+      <svg viewBox="0 0 24 24" fill="none"
+        stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 7v5l3 2"/>
+      </svg>
+    </span>
+
+    <span>История</span>
+
+  </button>
+
+</nav>
+
+<!-- HISTORY -->
+
+<section class="panel">
+
+  <h2>
+    История операций
+  </h2>
+
+  <div id="transactions">
+    <div class="empty">
+      Загрузка истории операций…
+    </div>
+  </div>
+
+</section>
+
+</main>
+
+<!-- ================= TRANSFER MODAL (SEARCH ONLY BY ID) ================= -->
+
+<div class="modal hidden" id="transferModal">
+
+  <div class="modal-card">
+
+    <div class="modal-head">
+
+      <h3>
+        Перевод по ID
+      </h3>
+
+      <button class="close" data-close="transferModal">
+        ×
+      </button>
+
+    </div>
+
+    <!-- STRICTLY BY ID SEARCH -->
+    <label class="field-label">
+      Идентификатор получателя
+    </label>
+
+    <div class="recipient-search-row">
+      <input
+        id="recipientSearch"
+        class="input"
+        autocomplete="off"
+        placeholder="Введите ID (например: MFP-123456)">
+
+      <button class="gold-btn" id="searchRecipientBtn" style="width:auto;margin-top:0;padding:14px 18px;white-space:nowrap;">
+        Найти получателя
+      </button>
+    </div>
+
+    <div class="search-results" id="recipientResult"></div>
+
+    <div id="transferFields" class="hidden">
+
+      <label class="field-label" style="margin-top:18px">
+        Сумма
+      </label>
+
+      <input
+        id="transferAmount"
+        class="input"
+        type="number"
+        min="0.01"
+        step="0.01"
+        placeholder="0.00">
+
+      <label class="field-label" style="margin-top:14px">
+        Назначение платежа — необязательно
+      </label>
+
+      <textarea
+        id="transferDescription"
+        class="input"
+        maxlength="300"
+        rows="3"
+        placeholder="За что перевод?"></textarea>
+
+      <button class="gold-btn" id="sendTransferBtn">
+        Выполнить перевод
+      </button>
+
+      <div class="status" id="transferStatus"></div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ================= PROFILE & DEVICES MODAL ================= -->
+
+<div class="modal hidden" id="profileModal">
+
+  <div class="modal-card">
+
+    <div class="modal-head">
+
+      <h3>
+        Профиль и безопасность
+      </h3>
+
+      <button class="close" data-close="profileModal">
+        ×
+      </button>
+
+    </div>
+
+    <!-- User Header with Photo Edit -->
+    <div class="profile-card-header">
+      <label class="profile-avatar-large" id="profileAvatarLarge" for="profileAvatarEditInput" title="Нажмите, чтобы сменить фото">
+        M
+      </label>
+      <input id="profileAvatarEditInput" type="file" accept="image/*" hidden>
+
+      <div class="profile-header-info">
+        <div class="profile-header-name" id="profileModalName">
+          —
+        </div>
+        <div class="profile-header-id">
+          <span>ID: <b id="profileModalId">—</b></span>
+          <span class="copy-id-chip" id="copyIdChip">Копировать</span>
+        </div>
+        <label for="profileAvatarEditInput" class="upload-photo-btn" style="margin-top:6px;width:fit-content;padding:4px 9px;font-size:11px;">
+          Сменить фото
+        </label>
+      </div>
+    </div>
+
+    <!-- 6-DIGIT PIN CODE (HIDDEN BY DEFAULT, TOGGLE SHOW/HIDE) -->
+    <div class="profile-pin-box">
+      <div>
+        <div class="pin-info-label">
+          Код доступа
+        </div>
+        <div class="pin-value-container">
+          <span class="pin-value-text" id="profilePinValueText">••••••</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:6px;">
+        <button class="pin-toggle-btn" id="togglePinVisibilityBtn">
+          <span id="pinToggleIcon">👁️</span>
+          <span id="pinToggleLabel">Показать</span>
+        </button>
+
+        <button class="pin-toggle-btn" id="copyPinBtn">
+          Копировать
+        </button>
+      </div>
+    </div>
+
+    <!-- SHARE APP SECTION -->
+    <div class="profile-section-card">
+      <div class="profile-section-header">
+        <div class="profile-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:var(--gold);">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          <span>Поделиться приложением</span>
+        </div>
+        <span class="badge-chip">APK</span>
+      </div>
+      <div class="profile-section-hint">
+        Отправьте APK файл приложения MrFeastProjectBank друзьям в Telegram, WhatsApp или по Bluetooth.
+      </div>
+      <button class="gold-btn share-app-action-btn" id="shareAppProfileBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+        <span>Поделиться приложением (APK)</span>
+      </button>
+    </div>
+
+    <!-- AUTO-UPDATE & SECURITY SECTION -->
+    <div class="profile-section-card" id="autoUpdateSection">
+      <div class="profile-section-header">
+        <div class="profile-section-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;stroke:var(--gold);">
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+            <path d="M16 21h5v-5"/>
+          </svg>
+          <span>Автообновление банка</span>
+        </div>
+        <span class="badge-chip" id="profileAppVerBadge">v1.0.8</span>
+      </div>
+
+      <div class="profile-section-hint">
+        Приложение может самостоятельно в фоне проверять новые версии и обновляться. Для этого необходимо выдать разрешение в настройках Android.
+      </div>
+
+      <!-- Permission Status Box -->
+      <div class="update-perm-box" id="updatePermBox">
+        <div class="update-perm-text-col">
+          <div class="update-perm-status" id="updatePermStatusText">Проверка разрешений...</div>
+          <div class="update-perm-subtext" id="updatePermSubtext">Разрешение «Установка неизвестных приложений»</div>
+        </div>
+        <button class="perm-btn" id="openSettingsPermBtn">
+          Настроить
+        </button>
+      </div>
+
+      <!-- Background toggle -->
+      <div class="setting-toggle-row">
+        <div>
+          <div class="toggle-title">Фоновое автообновление</div>
+          <div class="toggle-desc">Автоматически скачивать и обновлять банк</div>
+        </div>
+        <label class="switch-ui">
+          <input type="checkbox" id="autoUpdateCheckbox" checked>
+          <span class="switch-slider"></span>
+        </label>
+      </div>
+
+      <button class="secondary-btn check-update-btn" id="checkUpdateManualBtn">
+        🔄 Проверить наличие обновлений
+      </button>
+    </div>
+
+    <!-- DEVICES SECTION (REALTIME CONNECTED DEVICES) -->
+    <div class="devices-section">
+
+      <div class="devices-section-title">
+        <span>Текущее устройство</span>
+        <span style="font-size:11px;color:var(--green);" id="deviceCountLabel">Активно</span>
+      </div>
+
+      <div class="devices-list" id="devicesList">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <button class="secondary-btn" id="terminateOtherSessionsBtn" style="margin-top:14px;font-size:12px;">
+        Завершить другие сеансы
+      </button>
+
+      <button class="danger-btn" id="logoutBtn">
+        Выйти из профиля
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ================= APP UPDATE MODAL ================= -->
+
+<div class="modal hidden" id="appUpdateModal">
+
+  <div class="modal-card">
+
+    <div class="modal-head">
+      <h3 id="appUpdateModalTitle">🚀 Доступно обновление</h3>
+      <button class="close" data-close="appUpdateModal">×</button>
+    </div>
+
+    <div class="app-update-body">
+      <div class="update-version-hero">
+        <span class="ver-badge current-ver" id="modalCurVer">v1.0.8</span>
+        <span class="ver-arrow">➜</span>
+        <span class="ver-badge latest-ver" id="modalNewVer">v1.0.8</span>
+      </div>
+
+      <div class="update-notes-box">
+        <div class="update-notes-title">Что нового в этом выпуске:</div>
+        <div class="update-notes-text" id="modalUpdateNotes">
+          Регулярное обновление безопасности и производительности банка.
+        </div>
+      </div>
+
+      <!-- Permission Warning if needed -->
+      <div class="perm-warning-banner hidden" id="modalPermWarning">
+        ⚠️ <b>Внимание:</b> для завершения обновления предоставьте приложению право «Установка неизвестных приложений» в настройках Android.
+        <button class="gold-btn-sm" id="modalGrantPermBtn" style="margin-top:8px;width:100%;">
+          Открыть настройки устройства
+        </button>
+      </div>
+
+      <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-top:8px;line-height:1.4;text-align:center;">
+        💡 При ошибке «Приложение не установлено» удалите предыдущую сборку (из-за несовпадающего сертификата в старых версиях).
+      </div>
+
+      <!-- Download progress -->
+      <div class="update-progress-container hidden" id="modalProgressContainer">
+        <div class="update-progress-bar">
+          <div class="update-progress-fill" id="modalProgressFill" style="width:0%"></div>
+        </div>
+        <div class="update-progress-label" id="modalProgressLabel">Загрузка: 0%</div>
+        <div class="update-auto-close-hint hidden" id="modalAutoCloseHint">
+          🚀 Обновление загружено! Приложение закрывается и обновляется...
+        </div>
+      </div>
+
+      <div class="update-dialog-actions" id="modalUpdateActions">
+        <button class="gold-btn" id="confirmUpdateBtn">
+          Обновить сейчас
+        </button>
+        <button class="secondary-btn" id="dismissUpdateBtn" style="margin-top:8px;">
+          Напомнить позже
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ================= DEPOSIT MODAL ================= -->
+
+<div class="modal hidden" id="depositModal">
+
+  <div class="modal-card deposit-modal-card">
+
+    <div class="modal-head">
+      <h3>Пополнение счёта</h3>
+      <button class="close" data-close="depositModal">×</button>
+    </div>
+
+    <div class="deposit-notice">
+      <div class="deposit-notice-title">Пополнение временно недоступно</div>
+      <div class="deposit-notice-text">
+        Функция пополнения счёта находится в разработке. В настоящее время доступно автоматическое бонусное начисление <b>250</b> каждые 24 часа.
+      </div>
+    </div>
+
+    <div class="deposit-bonus-card">
+      <div class="deposit-bonus-label">Ежедневное начисление</div>
+      <div class="deposit-bonus-value">+250</div>
+      <div class="deposit-bonus-status" id="depositBonusStatus">Проверка доступности…</div>
+      <div class="deposit-next" id="depositNextBonus"></div>
+    </div>
+
+    <button class="gold-btn" id="claimBonusBtn">Проверить начисление</button>
+
+  </div>
+
+</div>
+
+<!-- ================= QR PAYMENT MODAL ================= -->
+<div class="modal hidden" id="paymentModal">
+  <div class="modal-card payment-modal-card">
+    <div class="modal-head">
+      <h3>Оплата по QR-коду</h3>
+      <button class="close" data-close="paymentModal">×</button>
+    </div>
+
+    <div id="paymentCreateView">
+      <div class="payment-intro">
+        Создайте платёжный QR-код. Средства будут списаны только после того, как получатель отсканирует код.
+      </div>
+
+      <label class="field-label">Сумма</label>
+      <div class="payment-amount-wrap">
+        <span>$</span>
+        <input id="paymentAmount" class="input payment-amount-input" inputmode="decimal" autocomplete="off" placeholder="0.00">
+      </div>
+
+      <label class="field-label">Описание</label>
+      <input id="paymentDescription" class="input" maxlength="140" placeholder="Например: За обед">
+
+      <div class="payment-note">QR-код действует 10 минут и может быть использован только один раз.</div>
+
+      <button class="gold-btn" id="createPaymentQrBtn">Создать QR-код</button>
+      <button class="secondary-btn payment-secondary-btn" id="openPaymentScannerBtn">Сканировать QR-код</button>
+      <div class="payment-status" id="paymentCreateStatus"></div>
+    </div>
+
+    <div id="paymentQrView" class="hidden">
+      <div class="payment-qr-title">QR-код для оплаты</div>
+      <div class="payment-summary">
+        <div><span>Сумма</span><b id="paymentQrAmount">$0.00</b></div>
+        <div><span>Описание</span><b id="paymentQrDescription">—</b></div>
+      </div>
+      <div class="payment-qr-box">
+        <img id="paymentQrImage" alt="QR-код платежа">
+      </div>
+      <div class="payment-expiry" id="paymentQrExpiry"></div>
+      <div class="payment-note">Попросите получателя открыть MrFeastProjectBank и отсканировать этот QR-код.</div>
+      <button class="secondary-btn payment-secondary-btn" id="backToPaymentCreateBtn">Создать другой платёж</button>
+    </div>
+
+    <div id="paymentScanView" class="hidden">
+      <div class="payment-qr-title">Сканирование QR-кода</div>
+      <div class="scanner-frame">
+        <video id="paymentScannerVideo" playsinline muted></video>
+        <div class="scanner-corners"></div>
+      </div>
+      <div class="payment-status" id="paymentScanStatus">Наведите камеру на QR-код платежа.</div>
+      <input id="paymentQrFileInput" type="file" accept="image/*" hidden>
+      <button class="secondary-btn payment-secondary-btn" id="paymentScanFileBtn">Выбрать изображение QR</button>
+      <button class="secondary-btn payment-secondary-btn" id="stopPaymentScannerBtn">Остановить сканирование</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= TRANSACTION MODAL ================= -->
+
+<div class="modal hidden" id="transactionModal">
+
+  <div class="modal-card">
+
+    <div class="modal-head">
+
+      <h3>
+        Детали операции
+      </h3>
+
+      <button class="close" data-close="transactionModal">
+        ×
+      </button>
+
+    </div>
+
+    <div id="transactionDetails"></div>
+
+  </div>
+
+</div>
+
+<!-- ================= TOAST ================= -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   SUPABASE
+========================================================= */
+
+const SUPABASE_URL = "https://mlvrnmnbwmaeuabzrtlb.supabase.co";
+const SUPABASE_KEY = "sb_publishable_5zD51AsVKtmTzhtR20Fh7A_XFLK2iVk";
+
+const { createClient } = window.supabase;
+
+// The bank does not use Gmail, phone OTP, or Supabase Auth.
+// The app's only credential is the unique 6-digit profile access code.
+// Supabase RLS receives that code through a request header.
+let activeAccessCode =
+  localStorage.getItem("mrfeast_user_pin") ||
+  "";
+
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  global: {
+    fetch: (url, options = {}) => {
+      const headers = new Headers(options.headers || {});
+      if(activeAccessCode){
+        headers.set("x-bank-access-code", activeAccessCode);
+      } else {
+        headers.delete("x-bank-access-code");
+      }
+      return fetch(url, { ...options, headers });
+    }
+  }
+});
+
+function setBankAccessCode(code){
+  activeAccessCode = String(code || "").replace(/\D/g, "").slice(0, 6);
+}
+
+/* =========================================================
+   DOM & STATE
+========================================================= */
+
+const $ = id => document.getElementById(id);
+
+const authScreen = $("authScreen");
+const welcomeScreen = $("welcomeScreen");
+
+const cleanEntryStep = $("cleanEntryStep");
+const pinStep = $("pinStep");
+const profileStep = $("profileStep");
+
+const authMessage = $("authMessage");
+const generatedPinDisplay = $("generatedPinDisplay");
+
+let currentUser = null;
+let currentProfile = null;
+let selectedRecipient = null;
+let avatarData = null;
+
+let activePinCode = "123456";
+let isPinVisible = false;
+let isNewUserRegistration = false;
+
+// Native Android Bridge helper
+const NativeBridge = {
+  isAvailable() {
+    return typeof window.AndroidBankBridge !== "undefined";
+  },
+  showNotification(title, message, isIncoming) {
+    if (this.isAvailable() && window.AndroidBankBridge.showNotification) {
+      window.AndroidBankBridge.showNotification(title, message, Boolean(isIncoming));
+    }
+  },
+  onUserAuthenticated(userId, userName, cardNumber, balance) {
+    if (this.isAvailable() && window.AndroidBankBridge.onUserAuthenticated) {
+      window.AndroidBankBridge.onUserAuthenticated(userId, userName, cardNumber, Number(balance || 0));
+    }
+  },
+  saveUserPin(pin) {
+    if (this.isAvailable() && window.AndroidBankBridge.saveUserPin) {
+      window.AndroidBankBridge.saveUserPin(pin);
+    }
+  },
+  getUserPin() {
+    if (this.isAvailable() && window.AndroidBankBridge.getUserPin) {
+      return window.AndroidBankBridge.getUserPin();
+    }
+    return "";
+  },
+  getDeviceModel() {
+    if (this.isAvailable() && window.AndroidBankBridge.getDeviceModel) {
+      const model = window.AndroidBankBridge.getDeviceModel();
+      if(model && model.trim()) return model;
+    }
+    const ua = navigator.userAgent;
+    if (/iPad|iPhone|iPod/.test(ua)) return "iPhone / iPad";
+    if (/Android/.test(ua)) return "Android устройство";
+    if (/Windows/i.test(ua)) return "Windows устройство";
+    if (/Macintosh/i.test(ua)) return "Mac устройство";
+    return "Текущее устройство";
+  },
+  getDeviceOs() {
+    if (this.isAvailable() && window.AndroidBankBridge.getDeviceOs) {
+      const os = window.AndroidBankBridge.getDeviceOs();
+      if(os && os.trim()) return os;
+    }
+    const ua = navigator.userAgent;
+    if (/iPhone|iPad|iPod/.test(ua)) return "iOS";
+    if (/Android/i.test(ua)) return "Android";
+    if (/Windows/i.test(ua)) return "Windows";
+    if (/Macintosh/i.test(ua)) return "macOS";
+    return "Web";
+  },
+  openExternalUrl(url) {
+    if (this.isAvailable() && window.AndroidBankBridge.openExternalUrl) {
+      window.AndroidBankBridge.openExternalUrl(url);
+    } else {
+      window.open(url, "_blank");
+    }
+  },
+  copyToClipboard(text) {
+    if (this.isAvailable() && window.AndroidBankBridge.copyToClipboard) {
+      window.AndroidBankBridge.copyToClipboard(text);
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+    }
+  },
+  shareAppApk() {
+    if (this.isAvailable() && window.AndroidBankBridge.shareAppApk) {
+      window.AndroidBankBridge.shareAppApk();
+    } else {
+      if (navigator.share) {
+        navigator.share({
+          title: "MrFeastProjectBank",
+          text: "Скачивай официальное банковское приложение MrFeastProjectBank!",
+          url: "https://github.com/MrFeastProject/MrFeastProjectBank_Studio/releases/latest"
+        }).catch(() => {});
+      } else {
+        this.copyToClipboard("https://github.com/MrFeastProject/MrFeastProjectBank_Studio/releases/latest");
+        showToast("Ссылка на приложение скопирована!");
+      }
+    }
+  },
+  canRequestPackageInstalls() {
+    if (this.isAvailable() && window.AndroidBankBridge.canRequestPackageInstalls) {
+      return Boolean(window.AndroidBankBridge.canRequestPackageInstalls());
+    }
+    return true;
+  },
+  openInstallPermissionSettings() {
+    if (this.isAvailable() && window.AndroidBankBridge.openInstallPermissionSettings) {
+      window.AndroidBankBridge.openInstallPermissionSettings();
+    } else {
+      showToast("Настройки разрешений доступны только в Android приложении");
+    }
+  },
+  isAutoUpdateEnabled() {
+    if (this.isAvailable() && window.AndroidBankBridge.isAutoUpdateEnabled) {
+      return Boolean(window.AndroidBankBridge.isAutoUpdateEnabled());
+    }
+    return true;
+  },
+  setAutoUpdateEnabled(enabled) {
+    if (this.isAvailable() && window.AndroidBankBridge.setAutoUpdateEnabled) {
+      window.AndroidBankBridge.setAutoUpdateEnabled(Boolean(enabled));
+    }
+  },
+  getAppVersion() {
+    if (this.isAvailable() && window.AndroidBankBridge.getAppVersion) {
+      return window.AndroidBankBridge.getAppVersion();
+    }
+    return "1.0.8";
+  },
+  checkForAppUpdate(forceShowIfLatest = false) {
+    if (this.isAvailable() && window.AndroidBankBridge.checkForAppUpdate) {
+      window.AndroidBankBridge.checkForAppUpdate(Boolean(forceShowIfLatest));
+    } else {
+      showToast("Проверка обновлений доступна на Android устройстве");
+    }
+  },
+  downloadAndInstallUpdate(apkUrl) {
+    if (this.isAvailable() && window.AndroidBankBridge.downloadAndInstallUpdate) {
+      window.AndroidBankBridge.downloadAndInstallUpdate(apkUrl);
+    } else {
+      showToast("Загрузка обновления доступна только на Android устройстве");
+    }
+  }
+};
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function showToast(message, error=false){
+  const t = $("toast");
+  t.textContent = message;
+  t.classList.toggle("error", error);
+  t.classList.add("show");
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => {
+    t.classList.remove("show");
+  }, 2800);
+}
+
+function authMsg(message, type=""){
+  authMessage.textContent = message;
+  authMessage.className = "auth-message" + (type ? " " + type : "");
+}
+
+function formatMoney(value){
+  return Number(value || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function maskCard(card){
+  if(!card) return "•••• •••• •••• ••••";
+  const clean = card.replace(/\D/g,"");
+  if(clean.length !== 16) return card;
+  return clean.match(/.{1,4}/g)
+    .map((part,i) => i === 0 || i === 3 ? part : "••••")
+    .join(" ");
+}
+
+function greeting(){
+  const hour = new Date().getHours();
+  if(hour >= 5 && hour < 12) return "Доброе утро";
+  if(hour >= 12 && hour < 18) return "Добрый день";
+  if(hour >= 18 && hour < 24) return "Добрый вечер";
+  return "Доброй ночи";
+}
+
+function fullName(profile){
+  return [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Пользователь";
+}
+
+function initials(profile){
+  const name = fullName(profile);
+  return (name.split(/\s+/).map(x => x[0]).join("").slice(0,2).toUpperCase()) || "M";
+}
+
+function generateRandomCardNumber(){
+  const rand4 = () => Math.floor(1000 + Math.random() * 9000);
+  return `5213 ${rand4()} ${rand4()} ${rand4()}`;
+}
+
+function generateRandomUniversalId(){
+  return `MFP-${Math.floor(100000 + Math.random() * 900000)}`;
+}
+
+function generateRandom6Pin(){
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+/* =========================================================
+   AUTH STEPS & PIN FLOW
+========================================================= */
+
+function showEntryStep(){
+  cleanEntryStep.classList.remove("hidden");
+  pinStep.classList.add("hidden");
+  profileStep.classList.add("hidden");
+  $("authSubtitle").textContent = "Вход в банковский профиль";
+  authMsg("");
+}
+
+function showPinStep(isNew, pinCode){
+  cleanEntryStep.classList.add("hidden");
+  pinStep.classList.remove("hidden");
+  profileStep.classList.add("hidden");
+
+  isNewUserRegistration = isNew;
+  activePinCode = pinCode;
+
+  if(isNew){
+    // New user registration - display the generated PIN code!
+    $("pinDisplayContainer").classList.remove("hidden");
+    $("pinTitleText").textContent = "Код доступа для нового профиля";
+    $("pinDescText").textContent = "Запомните этот код для входа в банк:";
+    generatedPinDisplay.textContent = pinCode;
+    $("pinInputLabel").textContent = "Подтвердите назначенный PIN-код";
+    $("pinOtpInput").value = pinCode;
+    authMsg("Вам назначен персональный PIN-код.", "success");
+  } else {
+    // Existing user login - prompt to enter their PIN code
+    $("pinDisplayContainer").classList.add("hidden");
+    $("pinInputLabel").textContent = "Введите ваш 6-значный PIN-код";
+    $("pinOtpInput").value = "";
+    authMsg("Введите ваш PIN-код для входа.", "");
+  }
+
+  $("pinOtpInput").focus();
+}
+
+function showProfileStep(){
+  cleanEntryStep.classList.add("hidden");
+  pinStep.classList.add("hidden");
+  profileStep.classList.remove("hidden");
+  $("authSubtitle").textContent = "Оформите банковский профиль";
+}
+
+// Ensure persistent user UID exists
+function getOrCreateUid(){
+  let savedUserId = localStorage.getItem("mrfeast_bank_uid");
+  if(!savedUserId){
+    savedUserId = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+    localStorage.setItem("mrfeast_bank_uid", savedUserId);
+  }
+  return savedUserId;
+}
+
+// Start PIN auth button — only the 6-digit bank code is used.
+$("startPinAuthBtn").addEventListener("click", () => {
+  currentUser = null;
+  currentProfile = null;
+  showPinStep(false, "");
+});
+
+// Start new account button — assign a new 6-digit code.
+$("startNewAccountBtn").addEventListener("click", () => {
+  const userId = getOrCreateUid();
+  currentUser = { id: userId };
+  currentProfile = null;
+
+  const newRandomPin = generateRandom6Pin();
+  setBankAccessCode(newRandomPin);
+  localStorage.setItem("mrfeast_user_pin", newRandomPin);
+  NativeBridge.saveUserPin(newRandomPin);
+  showPinStep(true, newRandomPin);
+});
+
+// Copy generated PIN button
+$("copyGeneratedPinBtn").addEventListener("click", () => {
+  NativeBridge.copyToClipboard(activePinCode);
+  showToast(`PIN-код скопирован: ${activePinCode}`);
+});
+
+// Back to entry
+$("backToEntryBtn").addEventListener("click", () => {
+  showEntryStep();
+});
+
+// Verify 6-digit code
+$("verifyPinBtn").addEventListener("click", async () => {
+  const enteredCode = $("pinOtpInput").value.trim();
+
+  if(!/^\d{6}$/.test(enteredCode)){
+    authMsg("Введите 6-значный цифровой PIN-код.", "error");
+    return;
+  }
+
+  const btn = $("verifyPinBtn");
+  btn.disabled = true;
+  btn.textContent = "Проверка...";
+
+  try {
+    if(isNewUserRegistration){
+      activePinCode = enteredCode;
+      setBankAccessCode(enteredCode);
+      localStorage.setItem("mrfeast_user_pin", enteredCode);
+      NativeBridge.saveUserPin(enteredCode);
+      showProfileStep();
+      return;
+    }
+
+    const { data, error } = await supabaseClient.rpc(
+      "login_bank_profile",
+      { p_access_code: enteredCode }
+    );
+
+    if(error) throw error;
+
+    const profile = data?.[0];
+    if(!profile){
+      authMsg("Неверный PIN-код. Профиль с таким кодом не найден.", "error");
+      return;
+    }
+
+    setBankAccessCode(enteredCode);
+    activePinCode = enteredCode;
+    localStorage.setItem("mrfeast_user_pin", enteredCode);
+    NativeBridge.saveUserPin(enteredCode);
+
+    currentProfile = profile;
+    currentUser = { id: profile.id };
+
+    authScreen.classList.add("hidden");
+    await startBank();
+
+  } catch(e) {
+    console.error("PIN verification error:", e);
+    authMsg(e.message || "Не удалось проверить PIN-код.", "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Продолжить";
+  }
+});
+
+/* =========================================================
+   CUSTOM AVATAR PICKER (PHOTO UPLOAD & PRESETS)
+========================================================= */
+
+function setupAvatarHandling(inputId, previewId){
+  const input = $(inputId);
+  if(!input) return;
+
+  input.addEventListener("change", event => {
+    const file = event.target.files?.[0];
+    if(!file) return;
+
+    if(file.size > 2 * 1024 * 1024){
+      showToast("Изображение слишком большое (макс 2 MB)", true);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxSide = 300;
+        let w = img.width;
+        let h = img.height;
+        if (w > h && w > maxSide) {
+          h = Math.round(h * (maxSide / w));
+          w = maxSide;
+        } else if (h > maxSide) {
+          w = Math.round(w * (maxSide / h));
+          h = maxSide;
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+        avatarData = canvas.toDataURL("image/jpeg", 0.85);
+
+        // Update previews
+        $(previewId).innerHTML = `<img src="${avatarData}" alt="">`;
+        $("profileAvatarLarge").innerHTML = `<img src="${avatarData}" alt="">`;
+        $("avatar").innerHTML = `<img src="${avatarData}" alt="">`;
+        showToast("Фото выбрано успешно!");
+
+        // If in profile modal and profile exists, persist immediately
+        if(currentProfile && currentProfile.id){
+          supabaseClient
+            .from("profiles")
+            .update({ avatar_data: avatarData })
+            .eq("id", currentProfile.id)
+            .then(() => {
+              currentProfile.avatar_data = avatarData;
+            });
+        }
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+setupAvatarHandling("avatarInput", "avatarPreview");
+setupAvatarHandling("profileAvatarEditInput", "profileAvatarLarge");
+
+// Preset emoji avatars
+document.querySelectorAll(".preset-chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    const emoji = chip.dataset.emoji;
+    const canvas = document.createElement("canvas");
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#1e1a12";
+    ctx.fillRect(0, 0, 128, 128);
+    ctx.font = "72px serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(emoji, 64, 68);
+    avatarData = canvas.toDataURL("image/png");
+
+    $("avatarPreview").innerHTML = `<img src="${avatarData}" alt="">`;
+    $("profileAvatarLarge").innerHTML = `<img src="${avatarData}" alt="">`;
+    $("avatar").innerHTML = `<img src="${avatarData}" alt="">`;
+    showToast(`Выбрана аватарка ${emoji}`);
+  });
+});
+
+/* =========================================================
+   CREATE PROFILE (EXCLUDES PIN_CODE TO PREVENT SCHEMA ERROR)
+========================================================= */
+
+$("createProfileBtn").addEventListener("click", async () => {
+  const firstName = $("firstNameInput").value.trim();
+  const lastName = $("lastNameInput").value.trim();
+
+  if(!firstName){
+    authMsg("Пожалуйста, введите имя.", "error");
+    return;
+  }
+
+  if(!currentUser){
+    authMsg("Сессия отсутствует. Повторите вход.", "error");
+    return;
+  }
+
+  const btn = $("createProfileBtn");
+  btn.disabled = true;
+  btn.textContent = "Создаём банковский профиль...";
+
+  const newCard = generateRandomCardNumber();
+  const newUniversalId = generateRandomUniversalId();
+  const userPin = activePinCode || "123456";
+
+  try {
+    const userPin = activePinCode || generateRandom6Pin();
+    setBankAccessCode(userPin);
+
+    const profilePayload = {
+      id: currentUser.id,
+      access_code: userPin,
+      first_name: firstName,
+      last_name: lastName || null,
+      avatar_data: avatarData,
+      card_number: newCard,
+      universal_id: newUniversalId,
+      balance: 1000.00,
+      updated_at: new Date().toISOString()
+    };
+
+    const { data, error } = await supabaseClient
+      .from("profiles")
+      .insert(profilePayload)
+      .select("id, first_name, last_name, avatar_data, card_number, universal_id, balance, updated_at")
+      .single();
+
+    if(error) throw error;
+
+    currentProfile = data;
+
+    // Securely save PIN locally and in native Android SharedPreferences
+    localStorage.setItem("mrfeast_user_pin", userPin);
+    NativeBridge.saveUserPin(userPin);
+
+    authScreen.classList.add("hidden");
+    await startBank();
+
+    NativeBridge.showNotification(
+      "Профиль MrFeastProjectBank",
+      `Ваш аккаунт активирован. ID: ${newUniversalId} • PIN: ${userPin}`,
+      true
+    );
+
+  } catch(error) {
+    console.error(error);
+    authMsg(error.message || "Не удалось создать профиль.", "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Создать профиль";
+  }
+});
+
+/* =========================================================
+   LOAD PROFILE & UI
+========================================================= */
+
+async function loadProfile(){
+  if(!currentUser) return null;
+  try {
+    const { data, error } = await supabaseClient
+      .from("profiles")
+      .select("id, first_name, last_name, avatar_data, card_number, universal_id, balance")
+      .eq("id", currentUser.id)
+      .single();
+
+    if(!error && data){
+      currentProfile = data;
+      NativeBridge.onUserAuthenticated(
+        data.id,
+        fullName(data),
+        data.card_number,
+        data.balance
+      );
+      return data;
+    }
+  } catch(e) {
+    console.warn("loadProfile error:", e);
+  }
+  return null;
+}
+
+function renderAvatar(profile){
+  const avatar = $("avatar");
+  const src = profile?.avatar_data;
+  if(src){
+    avatar.innerHTML = `<img src="${src}" alt="">`;
+    $("profileAvatarLarge").innerHTML = `<img src="${src}" alt="">`;
+  } else {
+    avatar.textContent = initials(profile);
+    $("profileAvatarLarge").textContent = initials(profile);
+  }
+}
+
+function renderCard(profile){
+  $("cardNumber").textContent = maskCard(profile?.card_number);
+  $("holder").textContent = fullName(profile).toUpperCase();
+  $("universalId").textContent = profile?.universal_id || "—";
+  $("signature").textContent = profile?.first_name || "—";
+}
+
+function renderBalance(balance, animate=true){
+  const el = $("balance");
+  const target = Number(balance || 0);
+
+  if(!animate){
+    el.textContent = formatMoney(target);
+    return;
+  }
+
+  const startValue = Number(el.dataset.value || 0);
+  const start = performance.now();
+  const duration = 550;
+  el.dataset.value = target;
+
+  function tick(now){
+    const p = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    const value = startValue + (target - startValue) * eased;
+    el.textContent = formatMoney(value);
+    if(p < 1) requestAnimationFrame(tick);
+  }
+
+  requestAnimationFrame(tick);
+}
+
+async function showWelcome(profile){
+  $("welcomeGreeting").textContent = greeting();
+  $("welcomeName").textContent = fullName(profile);
+  welcomeScreen.classList.remove("hidden");
+  await new Promise(resolve => setTimeout(resolve, 1400));
+  welcomeScreen.classList.add("hidden");
+}
+
+/* =========================================================
+   PROFILE & DEVICES MANAGEMENT
+========================================================= */
+
+function updateProfileModalUI(){
+  if(!currentProfile) return;
+
+  $("profileModalName").textContent = fullName(currentProfile);
+  $("profileModalId").textContent = currentProfile.universal_id || "—";
+
+  // PIN code is hidden by default
+  isPinVisible = false;
+  updatePinDisplayState();
+
+  // App version badge and auto-update status
+  if($("profileAppVerBadge")){
+    $("profileAppVerBadge").textContent = "v" + NativeBridge.getAppVersion();
+  }
+  if($("autoUpdateCheckbox")){
+    $("autoUpdateCheckbox").checked = NativeBridge.isAutoUpdateEnabled();
+  }
+  updateInstallPermissionCardUI();
+
+  renderDevicesList();
+}
+
+// Open Profile & Devices from the top-right avatar.
+// Keep this handler in the main script so it also works inside Android WebView.
+const profileAvatarButton = $("avatar");
+if(profileAvatarButton){
+  const openProfileSettings = () => {
+    if(!currentProfile){
+      showToast("Профиль ещё не загружен.", true);
+      return;
+    }
+    updateProfileModalUI();
+    openModal("profileModal");
+  };
+
+  profileAvatarButton.addEventListener("click", openProfileSettings);
+  profileAvatarButton.addEventListener("keydown", event => {
+    if(event.key === "Enter" || event.key === " "){
+      event.preventDefault();
+      openProfileSettings();
+    }
+  });
+  profileAvatarButton.setAttribute("role", "button");
+  profileAvatarButton.setAttribute("tabindex", "0");
+}
+
+function updatePinDisplayState(){
+  const pin = activePinCode || localStorage.getItem("mrfeast_user_pin") || "123456";
+  if(isPinVisible){
+    $("profilePinValueText").textContent = pin;
+    $("pinToggleIcon").textContent = "👁️‍🗨️";
+    $("pinToggleLabel").textContent = "Скрыть";
+  } else {
+    $("profilePinValueText").textContent = "••••••";
+    $("pinToggleIcon").textContent = "👁️";
+    $("pinToggleLabel").textContent = "Показать";
+  }
+}
+
+// Toggle PIN visibility
+$("togglePinVisibilityBtn").addEventListener("click", () => {
+  isPinVisible = !isPinVisible;
+  updatePinDisplayState();
+});
+
+$("profilePinValueText").addEventListener("click", () => {
+  isPinVisible = !isPinVisible;
+  updatePinDisplayState();
+});
+
+// Copy PIN
+$("copyPinBtn").addEventListener("click", () => {
+  const pin = activePinCode || localStorage.getItem("mrfeast_user_pin") || "123456";
+  NativeBridge.copyToClipboard(pin);
+  showToast(`PIN-код скопирован: ${pin}`);
+});
+
+// Copy ID
+$("copyIdChip").addEventListener("click", () => {
+  const uid = currentProfile?.universal_id || "";
+  NativeBridge.copyToClipboard(uid);
+  showToast(`ID скопирован: ${uid}`);
+});
+
+// Get or initialize active devices list
+function getStoredDevices(){
+  const currentModel = NativeBridge.getDeviceModel() || "Текущее устройство";
+  const currentOs = NativeBridge.getDeviceOs() || "Android";
+
+  // Только реальное текущее устройство.
+  // Старые/демо/fake устройства из предыдущих версий удаляются.
+  const currentDevice = {
+    id: "current-device",
+    model: currentModel,
+    os: currentOs,
+    isCurrent: true,
+    lastActive: "В сети"
+  };
+
+  localStorage.setItem(
+    "mrfeast_active_devices",
+    JSON.stringify([currentDevice])
+  );
+
+  return [currentDevice];
+}
+
+function renderDevicesList(){
+  const container = $("devicesList");
+  const devices = getStoredDevices();
+
+  $("deviceCountLabel").textContent =
+    devices.length === 1 ? "Активно" : `${devices.length} активных`;
+
+  container.innerHTML = "";
+
+  devices.forEach(device => {
+    const el = document.createElement("div");
+    el.className = "device-item current-device";
+
+    const isApple = /iPhone|iPad|Mac/i.test(device.model);
+
+    el.innerHTML = `
+      <div class="device-main">
+        <div class="device-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            ${isApple
+              ? `<rect x="5" y="2" width="14" height="20" rx="3"/>
+                 <line x1="12" y1="18" x2="12.01" y2="18"/>`
+              : `<rect x="6" y="2" width="12" height="20" rx="2"/>
+                 <circle cx="12" cy="18" r="1"/>`}
+          </svg>
+        </div>
+
+        <div class="device-meta">
+          <div class="device-name">
+            ${device.model}
+            <span style="font-size:10px;color:var(--green);font-weight:600;">
+              (текущее устройство)
+            </span>
+          </div>
+
+          <div class="device-os">${device.os}</div>
+
+          <div class="device-status">
+            <span class="status-online">● В сети</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <span style="font-size:11px;color:var(--muted);padding:4px 8px;">
+          Активно
+        </span>
+      </div>
+    `;
+
+    container.appendChild(el);
+  });
+}
+
+function revokeSession(deviceId){
+  // Текущее устройство нельзя считать fake-сеансом или удалять из списка.
+  showToast("Текущий сеанс активен.");
+}
+
+// Terminate all other sessions
+$("terminateOtherSessionsBtn").addEventListener("click", () => {
+  // Fake/демо-сеансы больше не создаются, поэтому завершать нечего.
+  renderDevicesList();
+  showToast("Других устройств с активным сеансом нет.");
+});
+
+/* =========================================================
+   APP SHARING & AUTO-UPDATE MANAGEMENT
+========================================================= */
+
+// Update permission card status in profile modal
+function updateInstallPermissionCardUI(){
+  const box = $("updatePermBox");
+  if(!box) return;
+
+  const canInstall = NativeBridge.canRequestPackageInstalls();
+  const statusText = $("updatePermStatusText");
+  const subtext = $("updatePermSubtext");
+  const btn = $("openSettingsPermBtn");
+
+  if(canInstall){
+    box.className = "update-perm-box perm-granted";
+    if(statusText) statusText.textContent = "✅ Разрешение выдано";
+    if(subtext) subtext.textContent = "Банк может автоматически обновляться в фоне";
+    if(btn) btn.textContent = "Настройки";
+  } else {
+    box.className = "update-perm-box perm-needed";
+    if(statusText) statusText.textContent = "⚠️ Требуется разрешение";
+    if(subtext) subtext.textContent = "Нажмите для включения автообновления в настройках телефона";
+    if(btn) btn.textContent = "Выдать доступ";
+  }
+}
+
+// 1. SHARE APP HANDLERS
+if($("shareAppTopBtn")){
+  $("shareAppTopBtn").addEventListener("click", () => {
+    NativeBridge.shareAppApk();
+  });
+}
+
+if($("shareAppProfileBtn")){
+  $("shareAppProfileBtn").addEventListener("click", () => {
+    NativeBridge.shareAppApk();
+  });
+}
+
+// 2. AUTO-UPDATE PERMISSION & TOGGLE HANDLERS
+if($("openSettingsPermBtn")){
+  $("openSettingsPermBtn").addEventListener("click", () => {
+    NativeBridge.openInstallPermissionSettings();
+  });
+}
+
+if($("modalGrantPermBtn")){
+  $("modalGrantPermBtn").addEventListener("click", () => {
+    NativeBridge.openInstallPermissionSettings();
+  });
+}
+
+if($("autoUpdateCheckbox")){
+  $("autoUpdateCheckbox").addEventListener("change", (e) => {
+    const isChecked = e.target.checked;
+    NativeBridge.setAutoUpdateEnabled(isChecked);
+    showToast(isChecked ? "Фоновое автообновление включено" : "Фоновое автообновление выключено");
+  });
+}
+
+if($("checkUpdateManualBtn")){
+  $("checkUpdateManualBtn").addEventListener("click", () => {
+    showToast("Проверка обновлений банка...");
+    NativeBridge.checkForAppUpdate(true);
+  });
+}
+
+// 3. APP UPDATE MODAL & SYSTEM EVENT CALLBACKS
+let currentUpdateInfo = null;
+
+window.onInstallPermissionChanged = function(){
+  updateInstallPermissionCardUI();
+  if(currentUpdateInfo && $("modalPermWarning")){
+    const canInstall = NativeBridge.canRequestPackageInstalls();
+    $("modalPermWarning").classList.toggle("hidden", canInstall);
+  }
+};
+
+window.onAppUpdateChecked = function(data){
+  currentUpdateInfo = data;
+  if(data.isAvailable){
+    if($("modalCurVer")) $("modalCurVer").textContent = "v" + data.currentVersion;
+    if($("modalNewVer")) $("modalNewVer").textContent = "v" + data.latestVersion;
+    if($("modalUpdateNotes")){
+      $("modalUpdateNotes").textContent = data.releaseNotes || "Регулярное обновление безопасности и быстродействия.";
+    }
+
+    const canInstall = NativeBridge.canRequestPackageInstalls();
+    if($("modalPermWarning")){
+      $("modalPermWarning").classList.toggle("hidden", canInstall);
+    }
+
+    if($("modalProgressContainer")) $("modalProgressContainer").classList.add("hidden");
+    if($("modalAutoCloseHint")) $("modalAutoCloseHint").classList.add("hidden");
+    if($("modalProgressFill")) $("modalProgressFill").style.width = "0%";
+    if($("modalProgressLabel")) $("modalProgressLabel").textContent = "Загрузка: 0%";
+    if($("confirmUpdateBtn")){
+      $("confirmUpdateBtn").disabled = false;
+      $("confirmUpdateBtn").textContent = "Обновить сейчас";
+    }
+    if($("modalUpdateActions")) $("modalUpdateActions").classList.remove("hidden");
+
+    openModal("appUpdateModal");
+  } else if(data.forceShow){
+    showToast(`У вас установлена последняя версия v${data.currentVersion}`);
+  }
+};
+
+if($("confirmUpdateBtn")){
+  $("confirmUpdateBtn").addEventListener("click", () => {
+    if(!currentUpdateInfo || !currentUpdateInfo.apkUrl){
+      showToast("Ссылка на файл обновления не найдена", true);
+      return;
+    }
+
+    const canInstall = NativeBridge.canRequestPackageInstalls();
+    if(!canInstall){
+      NativeBridge.openInstallPermissionSettings();
+      showToast("Разрешите установку обновлений в настройках Android");
+    }
+
+    $("confirmUpdateBtn").disabled = true;
+    if($("modalProgressContainer")) $("modalProgressContainer").classList.remove("hidden");
+    if($("modalProgressLabel")) $("modalProgressLabel").textContent = "Загрузка обновления: 0%...";
+    NativeBridge.downloadAndInstallUpdate(currentUpdateInfo.apkUrl);
+  });
+}
+
+if($("dismissUpdateBtn")){
+  $("dismissUpdateBtn").addEventListener("click", () => {
+    closeModal("appUpdateModal");
+  });
+}
+
+window.onAppUpdateProgress = function(percent){
+  if($("modalProgressContainer")) $("modalProgressContainer").classList.remove("hidden");
+  if($("modalProgressFill")) $("modalProgressFill").style.width = percent + "%";
+  if($("modalProgressLabel")) $("modalProgressLabel").textContent = `Загрузка обновления: ${percent}%`;
+};
+
+window.onAppUpdateReady = function(){
+  if($("modalProgressFill")) $("modalProgressFill").style.width = "100%";
+  if($("modalProgressLabel")) $("modalProgressLabel").textContent = "Загрузка завершена!";
+  if($("modalAutoCloseHint")) $("modalAutoCloseHint").classList.remove("hidden");
+  if($("modalUpdateActions")) $("modalUpdateActions").classList.add("hidden");
+  showToast("Обновление загружено! Запуск установщика Android...");
+};
+
+window.onAppUpdateFailed = function(err){
+  if($("confirmUpdateBtn")){
+    $("confirmUpdateBtn").disabled = false;
+    $("confirmUpdateBtn").textContent = "Попробовать снова";
+  }
+  if($("modalProgressLabel")){
+    $("modalProgressLabel").textContent = "Ошибка загрузки: " + (err || "Проверьте интернет");
+  }
+  showToast("Не удалось скачать обновление. Проверьте соединение с интернетом.", true);
+};
+
+/* ================= LOGOUT ================= */
+$("logoutBtn").addEventListener("click", async () => {
+  const btn = $("logoutBtn");
+  btn.disabled = true;
+  btn.textContent = "Выход…";
+
+  try {
+    try { await supabaseClient.removeAllChannels(); } catch(_) {}
+    clearInterval(window.__dailyBonusTimer);
+
+    localStorage.removeItem("mrfeast_user_pin");
+    localStorage.removeItem("mrfeast_bank_uid");
+    localStorage.removeItem("mrfeast_active_devices");
+    try { NativeBridge.saveUserPin(""); } catch(_) {}
+
+    setBankAccessCode("");
+    activePinCode = "";
+    currentUser = null;
+    currentProfile = null;
+    selectedRecipient = null;
+    avatarData = null;
+
+    document.body.classList.remove("modal-open");
+    document.querySelectorAll(".modal").forEach(m => m.classList.add("hidden"));
+    welcomeScreen.classList.add("hidden");
+    authScreen.classList.remove("hidden");
+    showEntryStep();
+    showToast("Вы вышли из банковского профиля.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Выйти из профиля";
+  }
+});
+
+/* =========================================================
+   TRANSACTIONS
+========================================================= */
+
+async function loadTransactions(){
+  if(!currentUser) return;
+
+  const container = $("transactions");
+
+  try {
+    const { data, error } = await supabaseClient.rpc(
+      "list_bank_transactions"
+    );
+
+    if(error){
+      console.error(error);
+      container.innerHTML = `<div class="empty">Не удалось загрузить историю.</div>`;
+      return;
+    }
+
+    container.innerHTML = "";
+
+    if(!data?.length){
+      container.innerHTML = `<div class="empty">Операций пока нет.</div>`;
+      return;
+    }
+
+    data.forEach(tx => {
+      const incoming = tx.recipient_id === currentUser.id;
+      const name = incoming
+        ? [tx.sender_first_name, tx.sender_last_name].filter(Boolean).join(" ") || "Пользователь"
+        : [tx.recipient_first_name, tx.recipient_last_name].filter(Boolean).join(" ") || "Пользователь";
+
+      const amount = Number(tx.amount);
+      const date = new Date(tx.created_at);
+      const formattedDate = date.toLocaleString("ru-RU", {
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      const row = document.createElement("div");
+      row.className = "tx";
+      row.innerHTML = `
+        <div class="tic">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            ${incoming
+              ? `<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/>`
+              : `<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>`}
+          </svg>
+        </div>
+        <div class="info">
+          <div class="t">${incoming ? "Входящий перевод от" : "Перевод пользователю"} ${escapeHtml(name)}</div>
+          <div class="d">${formattedDate}${tx.description ? " • " + escapeHtml(tx.description) : ""}</div>
+        </div>
+        <div class="sum ${incoming ? "plus" : "minus"}">
+          ${incoming ? "+" : "−"}$${formatMoney(amount)}
+        </div>
+      `;
+
+      row.addEventListener("click", () => {
+        openTransactionDetails(tx, incoming, name);
+      });
+
+      container.appendChild(row);
+    });
+
+  } catch(e) {
+    console.error("loadTransactions exception:", e);
+    container.innerHTML = `<div class="empty">Ошибка загрузки операций.</div>`;
+  }
+}
+
+function escapeHtml(value){
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+}
+
+function openTransactionDetails(tx, incoming, name){
+  const amount = Number(tx.amount);
+  const date = new Date(tx.created_at);
+
+  const html = `
+    <div class="amount-large">
+      ${incoming ? "+" : "−"}$${formatMoney(amount)}
+    </div>
+    <div class="detail">
+      <div class="detail-row">
+        <span>Тип</span>
+        <span>${incoming ? "Входящий перевод" : "Исходящий перевод"}</span>
+      </div>
+      <div class="detail-row">
+        <span>${incoming ? "Отправитель" : "Получатель"}</span>
+        <span>${escapeHtml(name)}</span>
+      </div>
+      <div class="detail-row">
+        <span>Сумма</span>
+        <span>$${formatMoney(amount)}</span>
+      </div>
+      <div class="detail-row">
+        <span>Описание</span>
+        <span>${tx.description ? escapeHtml(tx.description) : "Без описания"}</span>
+      </div>
+      <div class="detail-row">
+        <span>Дата</span>
+        <span>${date.toLocaleString("ru-RU")}</span>
+      </div>
+      <div class="detail-row">
+        <span>ID операции</span>
+        <span style="font-size:10px;word-break:break-all">${tx.id}</span>
+      </div>
+    </div>
+  `;
+
+  $("transactionDetails").innerHTML = html;
+  $("transactionModal").classList.remove("hidden");
+}
+
+/* =========================================================
+   SEARCH RECIPIENT (STRICTLY BY ID)
+========================================================= */
+
+$("searchRecipientBtn").addEventListener("click", searchRecipient);
+
+$("recipientSearch").addEventListener("keydown", event => {
+  if(event.key === "Enter") searchRecipient();
+});
+
+async function searchRecipient(){
+  const query = $("recipientSearch").value.trim().toUpperCase();
+
+  if(!query){
+    showToast("Введите ID пользователя (например MFP-839210).", true);
+    return;
+  }
+
+  // Ensure user searches strictly by ID, not phone number!
+  if(/^\+?\d{8,}$/.test(query)){
+    showToast("Поиск по номеру телефона отключен. Введите персональный ID (например MFP-123456).", true);
+    return;
+  }
+
+  const result = $("recipientResult");
+  result.innerHTML = `<div class="empty">Поиск по ID: ${escapeHtml(query)}...</div>`;
+  $("transferFields").classList.add("hidden");
+  selectedRecipient = null;
+
+  try {
+    let formattedId = query;
+    if(!formattedId.startsWith("MFP-") && /^\d+$/.test(formattedId)){
+      formattedId = "MFP-" + formattedId;
+    }
+
+    const { data: rpcData, error } = await supabaseClient.rpc(
+      "lookup_bank_user",
+      { q: formattedId }
+    );
+
+    if(error) throw error;
+
+    const user = rpcData?.[0];
+
+    if(!user){
+      result.innerHTML = `<div class="empty">Пользователь с ID "${escapeHtml(query)}" не найден.</div>`;
+      return;
+    }
+
+    if(user.id === currentUser.id){
+      result.innerHTML = `<div class="empty">Нельзя выполнить перевод на свой собственный ID.</div>`;
+      return;
+    }
+
+    selectedRecipient = user;
+    const name = [user.first_name, user.last_name].filter(Boolean).join(" ") || "Клиент банка";
+    const avatar = user.avatar_data
+      ? `<img src="${user.avatar_data}" alt="">`
+      : escapeHtml((user.first_name?.[0] || "M").toUpperCase());
+
+    result.innerHTML = `
+      <div class="receiver">
+        <div class="receiver-avatar">${avatar}</div>
+        <div class="receiver-info">
+          <div class="receiver-name">${escapeHtml(name)}</div>
+          <div class="receiver-meta">
+            ID: <b style="color:var(--gold-light);">${escapeHtml(user.universal_id || "—")}</b> • карта: ${maskCard(user.card_number)}
+          </div>
+        </div>
+      </div>
+    `;
+
+    $("transferFields").classList.remove("hidden");
+    $("transferAmount").focus();
+
+  } catch(error) {
+    console.error(error);
+    result.innerHTML = `<div class="empty">Ошибка поиска пользователя по ID.</div>`;
+  }
+}
+
+/* =========================================================
+   TRANSFER ACTION
+========================================================= */
+
+$("sendTransferBtn").addEventListener("click", async () => {
+  if(!selectedRecipient){
+    showToast("Сначала найдите получателя по ID.", true);
+    return;
+  }
+
+  const amount = Number($("transferAmount").value);
+  const description = $("transferDescription").value.trim();
+
+  if(!Number.isFinite(amount) || amount <= 0){
+    showToast("Введите корректную сумму.", true);
+    return;
+  }
+
+  if(amount > Number(currentProfile.balance)){
+    showToast("Недостаточно средств на балансе.", true);
+    return;
+  }
+
+  const button = $("sendTransferBtn");
+  const status = $("transferStatus");
+
+  button.disabled = true;
+  status.textContent = "Безопасно выполняем перевод...";
+
+  try {
+    const { data, error } = await supabaseClient.rpc("transfer_money", {
+      p_recipient: selectedRecipient.id,
+      p_amount: Number(amount.toFixed(2)),
+      p_description: description || null
+    });
+
+    if(error) throw error;
+
+    status.textContent = "Перевод успешно выполнен.";
+    showToast(`Переведено $${formatMoney(amount)}`);
+
+    // Native notification
+    const recipientName = [selectedRecipient.first_name, selectedRecipient.last_name].filter(Boolean).join(" ") || selectedRecipient.universal_id;
+    NativeBridge.showNotification(
+      "💸 Перевод выполнен",
+      `Списано $${formatMoney(amount)} в пользу ${recipientName}`,
+      false
+    );
+
+    await loadProfile();
+    renderBalance(currentProfile.balance, true);
+    await loadTransactions();
+
+    setTimeout(() => {
+      closeModal("transferModal");
+      $("recipientSearch").value = "";
+      $("transferAmount").value = "";
+      $("transferDescription").value = "";
+      $("recipientResult").innerHTML = "";
+      $("transferFields").classList.add("hidden");
+      selectedRecipient = null;
+      status.textContent = "";
+    }, 500);
+
+  } catch(error) {
+    console.error(error);
+    const msg = String(error.message || "");
+    if(msg.includes("insufficient_funds")){
+      status.textContent = "Недостаточно средств.";
+    } else {
+      status.textContent = "Перевод не выполнен.";
+    }
+    showToast(status.textContent, true);
+  } finally {
+    button.disabled = false;
+  }
+});
+
+/* =========================================================
+   MODALS
+========================================================= */
+
+function syncModalBodyLock(){
+  const anyOpen = [...document.querySelectorAll(".modal")].some(m => !m.classList.contains("hidden"));
+  document.body.classList.toggle("modal-open", anyOpen);
+}
+
+function openModal(id){
+  const modal = $(id);
+  if(!modal) return;
+  modal.classList.remove("hidden");
+  syncModalBodyLock();
+}
+
+function closeModal(id){
+  const modal = $(id);
+  if(!modal) return;
+  modal.classList.add("hidden");
+  if(id === "paymentModal") stopPaymentScanner();
+  syncModalBodyLock();
+}
+
+document.querySelectorAll("[data-close]").forEach(button => {
+  button.addEventListener("click", () => {
+    closeModal(button.dataset.close);
+  });
+});
+
+document.querySelectorAll(".modal").forEach(modal => {
+  modal.addEventListener("click", event => {
+    if(event.target === modal){
+      closeModal(modal.id);
+    }
+  });
+});
+
+/* =========================================================
+   BUTTON ACTIONS
+========================================================= */
+
+$("transferBtn").addEventListener("click", () => {
+  openModal("transferModal");
+  setTimeout(() => $("recipientSearch").focus(), 100);
+});
+
+$("historyBtn").addEventListener("click", () => {
+  document.querySelector(".panel").scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+});
+
+async function claimDailyBonus(showResult=true){
+  if(!currentProfile) return null;
+
+  const { data, error } = await supabaseClient.rpc("claim_daily_bonus");
+  if(error) throw error;
+
+  const result = data?.[0];
+  if(!result) throw new Error("Не удалось получить статус бонусного начисления.");
+
+  currentProfile.balance = Number(result.new_balance);
+  renderBalance(currentProfile.balance, true);
+
+  const status = $("depositBonusStatus");
+  const next = $("depositNextBonus");
+
+  if(result.granted){
+    if(status) status.textContent = "Начислено +250. Следующее начисление доступно через 24 часа.";
+    if(next) next.textContent = result.next_bonus_at ? `Следующее начисление: ${new Date(result.next_bonus_at).toLocaleString("ru-RU")}` : "";
+    if(showResult){
+      showToast("Ежедневное начисление 250 зачислено.");
+      NativeBridge.showNotification(
+        "Ежедневное начисление",
+        `Зачислено 250. Новый остаток: ${formatMoney(currentProfile.balance)}`,
+        true
+      );
+    }
+  } else {
+    if(status) status.textContent = "Сегодня начисление уже получено.";
+    if(next) next.textContent = result.next_bonus_at ? `Следующее начисление: ${new Date(result.next_bonus_at).toLocaleString("ru-RU")}` : "";
+    if(showResult) showToast("Ежедневное начисление пока недоступно.");
+  }
+
+  return result;
+}
+
+$("depositBtn").addEventListener("click", async () => {
+  openModal("depositModal");
+  const status = $("depositBonusStatus");
+  const next = $("depositNextBonus");
+  if(status) status.textContent = "Проверка доступности…";
+  if(next) next.textContent = "";
+  try {
+    await claimDailyBonus(false);
+  } catch(error) {
+    console.error("Daily bonus error:", error);
+    if(status) status.textContent = "Не удалось проверить начисление.";
+  }
+});
+
+$("claimBonusBtn").addEventListener("click", async () => {
+  const btn = $("claimBonusBtn");
+  btn.disabled = true;
+  btn.textContent = "Проверка…";
+  try {
+    await claimDailyBonus(true);
+  } catch(error) {
+    console.error("Daily bonus claim error:", error);
+    showToast("Не удалось выполнить начисление.", true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Проверить начисление";
+  }
+});
+
+
+/* =========================================================
+   QR PAYMENTS
+========================================================= */
+let paymentScannerStream = null;
+let paymentScannerTimer = null;
+
+function setPaymentCreateView(){
+  $("paymentCreateView").classList.remove("hidden");
+  $("paymentQrView").classList.add("hidden");
+  $("paymentScanView").classList.add("hidden");
+  stopPaymentScanner();
+}
+
+function setPaymentQrView(){
+  $("paymentCreateView").classList.add("hidden");
+  $("paymentQrView").classList.remove("hidden");
+  $("paymentScanView").classList.add("hidden");
+  stopPaymentScanner();
+}
+
+function setPaymentScanView(){
+  $("paymentCreateView").classList.add("hidden");
+  $("paymentQrView").classList.add("hidden");
+  $("paymentScanView").classList.remove("hidden");
+}
+
+function paymentQrUrl(token){
+  const payload = `MFPBANKPAY:${token}`;
+  return `https://quickchart.io/qr?text=${encodeURIComponent(payload)}&size=420&margin=2&ecLevel=H`;
+}
+
+function extractPaymentToken(raw){
+  const value = String(raw || "").trim();
+  const prefix = "MFPBANKPAY:";
+  if(value.startsWith(prefix)) return value.slice(prefix.length).trim();
+  try{
+    const url = new URL(value);
+    const token = url.searchParams.get("payment");
+    if(token) return token.trim();
+  }catch(_){ }
+  return "";
+}
+
+async function createPaymentQr(){
+  const amount = Number(String($("paymentAmount").value).replace(",", "."));
+  const description = $("paymentDescription").value.trim();
+  const status = $("paymentCreateStatus");
+  const button = $("createPaymentQrBtn");
+
+  if(!Number.isFinite(amount) || amount <= 0){
+    status.textContent = "Введите корректную сумму.";
+    return;
+  }
+  if(amount > Number(currentProfile?.balance || 0)){
+    status.textContent = "Недостаточно средств на балансе.";
+    return;
+  }
+
+  button.disabled = true;
+  status.textContent = "Подготавливаем платёж…";
+  try{
+    const {data,error} = await supabaseClient.rpc("create_payment_request", {
+      p_amount: Number(amount.toFixed(2)),
+      p_description: description || null
+    });
+    if(error) throw error;
+    const request = data?.[0];
+    if(!request?.payment_token) throw new Error("Не удалось создать платёжный QR-код.");
+
+    $("paymentQrAmount").textContent = `$${formatMoney(request.amount)}`;
+    $("paymentQrDescription").textContent = request.description || "Без описания";
+    $("paymentQrImage").src = paymentQrUrl(request.payment_token);
+    $("paymentQrExpiry").textContent = `Действует до ${new Date(request.expires_at).toLocaleTimeString("ru-RU", {hour:"2-digit", minute:"2-digit"})}`;
+    setPaymentQrView();
+  }catch(error){
+    console.error("createPaymentQr error:", error);
+    const msg = String(error.message || "");
+    status.textContent = msg.includes("insufficient_funds") ? "Недостаточно средств на балансе." : "Не удалось создать платёж.";
+  }finally{
+    button.disabled = false;
+  }
+}
+
+async function claimPaymentToken(token){
+  const cleanToken = String(token || "").trim();
+  if(!cleanToken) throw new Error("Некорректный QR-код.");
+
+  const {data,error} = await supabaseClient.rpc("claim_payment_request", {p_token: cleanToken});
+  if(error) throw error;
+  const result = data?.[0];
+  if(!result) throw new Error("Платёж не найден.");
+
+  await loadProfile();
+  renderBalance(currentProfile.balance, true);
+  await loadTransactions();
+  NativeBridge.showNotification(
+    "Платёж получен",
+    `Зачислено $${formatMoney(result.amount)}${result.sender_name ? ` от ${result.sender_name}` : ""}.`,
+    true
+  );
+  closeModal("paymentModal");
+  showToast(`Получено $${formatMoney(result.amount)}`);
+}
+
+async function handleScannedPayment(raw){
+  const token = extractPaymentToken(raw);
+  if(!token){
+    $("paymentScanStatus").textContent = "Это не QR-код MrFeastProjectBank.";
+    return;
+  }
+  $("paymentScanStatus").textContent = "Проверяем платёж…";
+  try{
+    stopPaymentScanner();
+    await claimPaymentToken(token);
+  }catch(error){
+    console.error("claimPaymentToken error:", error);
+    const msg = String(error.message || "");
+    const text = msg.includes("payment_expired") ? "Срок действия QR-кода истёк." :
+      msg.includes("payment_already_processed") ? "Этот QR-код уже использован." :
+      msg.includes("payment_self") ? "Нельзя оплатить самому себе." :
+      msg.includes("insufficient_funds") ? "У отправителя недостаточно средств." :
+      "Не удалось выполнить платёж.";
+    $("paymentScanStatus").textContent = text;
+  }
+}
+
+async function startPaymentScanner(){
+  setPaymentScanView();
+  const status = $("paymentScanStatus");
+  if(!window.BarcodeDetector){
+    status.textContent = "Сканирование камерой недоступно в этом WebView. Выберите изображение QR-кода ниже.";
+    return;
+  }
+  try{
+    const detector = new BarcodeDetector({formats:["qr_code"]});
+    paymentScannerStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}},audio:false});
+    $("paymentScannerVideo").srcObject = paymentScannerStream;
+    await $("paymentScannerVideo").play();
+    status.textContent = "Наведите камеру на QR-код платежа.";
+
+    const scan = async () => {
+      if(!paymentScannerStream) return;
+      try{
+        const codes = await detector.detect($("paymentScannerVideo"));
+        if(codes?.length && codes[0].rawValue){
+          await handleScannedPayment(codes[0].rawValue);
+          return;
+        }
+      }catch(error){
+        console.warn("QR detect:", error);
+      }
+      paymentScannerTimer = requestAnimationFrame(scan);
+    };
+    paymentScannerTimer = requestAnimationFrame(scan);
+  }catch(error){
+    console.error("scanner error:", error);
+    status.textContent = "Не удалось открыть камеру. Проверьте разрешение камеры или выберите изображение QR-кода.";
+  }
+}
+
+function stopPaymentScanner(){
+  if(paymentScannerTimer) cancelAnimationFrame(paymentScannerTimer);
+  paymentScannerTimer = null;
+  if(paymentScannerStream){
+    paymentScannerStream.getTracks().forEach(track => track.stop());
+    paymentScannerStream = null;
+  }
+  const video = $("paymentScannerVideo");
+  if(video) video.srcObject = null;
+}
+
+$("payBtn").addEventListener("click", () => {
+  setPaymentCreateView();
+  $("paymentAmount").value = "";
+  $("paymentDescription").value = "";
+  $("paymentCreateStatus").textContent = "";
+  openModal("paymentModal");
+});
+
+$("createPaymentQrBtn").addEventListener("click", createPaymentQr);
+$("openPaymentScannerBtn").addEventListener("click", startPaymentScanner);
+$("stopPaymentScannerBtn").addEventListener("click", () => {
+  stopPaymentScanner();
+  setPaymentCreateView();
+});
+$("backToPaymentCreateBtn").addEventListener("click", setPaymentCreateView);
+$("paymentScanFileBtn").addEventListener("click", () => $("paymentQrFileInput").click());
+$("paymentQrFileInput").addEventListener("change", async event => {
+  const file = event.target.files?.[0];
+  if(!file || !window.BarcodeDetector) return;
+  try{
+    const detector = new BarcodeDetector({formats:["qr_code"]});
+    const bitmap = await createImageBitmap(file);
+    const codes = await detector.detect(bitmap);
+    bitmap.close?.();
+    if(codes?.length && codes[0].rawValue) await handleScannedPayment(codes[0].rawValue);
+    else $("paymentScanStatus").textContent = "QR-код на изображении не найден.";
+  }catch(error){
+    console.error("QR image scan:", error);
+    $("paymentScanStatus").textContent = "Не удалось прочитать изображение QR-кода.";
+  }finally{
+    event.target.value = "";
+  }
+});
+
+/* =========================================================
+   CARD FLIP
+========================================================= */
+
+(function(){
+  const scene = $("cardScene");
+  const card = $("card");
+  const flip = () => card.classList.toggle("flipped");
+  scene.addEventListener("click", flip);
+  scene.addEventListener("keydown", event => {
+    if(event.key === "Enter" || event.key === " "){
+      event.preventDefault();
+      flip();
+    }
+  });
+})();
+
+/* =========================================================
+   START BANK
+========================================================= */
+
+async function startBank(){
+  if(!currentProfile) await loadProfile();
+  if(!currentProfile) return;
+
+  renderAvatar(currentProfile);
+  renderCard(currentProfile);
+  renderBalance(currentProfile.balance, false);
+
+  await showWelcome(currentProfile);
+  try { await claimDailyBonus(false); } catch(error) { console.warn("Daily bonus startup check:", error); }
+  await loadTransactions();
+
+  clearInterval(window.__dailyBonusTimer);
+  window.__dailyBonusTimer = setInterval(async () => {
+    if(currentProfile) {
+      try { await claimDailyBonus(true); } catch(error) { console.warn("Daily bonus timer:", error); }
+    }
+  }, 60 * 1000);
+
+  // Listen to realtime transaction updates for this user
+  try {
+    supabaseClient
+      .channel('public:transactions')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'transactions',
+        filter: `recipient_id=eq.${currentProfile.id}`
+      }, async (payload) => {
+        const tx = payload.new;
+        showToast(`Входящий перевод +$${formatMoney(tx.amount)}!`);
+        NativeBridge.showNotification(
+          "Входящий перевод",
+          `Вам перевели $${formatMoney(tx.amount)}. Баланс обновлен.`,
+          true
+        );
+        await loadProfile();
+        renderBalance(currentProfile.balance, true);
+        await loadTransactions();
+      })
+      .subscribe();
+  } catch(err) {
+    console.warn("Realtime subscription warning:", err);
+  }
+}
+
+/* =========================================================
+   INIT
+========================================================= */
+
+async function init(){
+  const savedPin =
+    localStorage.getItem("mrfeast_user_pin") ||
+    NativeBridge.getUserPin() ||
+    "";
+
+  if(/^\d{6}$/.test(savedPin)){
+    setBankAccessCode(savedPin);
+    activePinCode = savedPin;
+
+    try {
+      const { data, error } = await supabaseClient.rpc(
+        "login_bank_profile",
+        { p_access_code: savedPin }
+      );
+
+      if(!error && data?.[0]){
+        currentProfile = data[0];
+        currentUser = { id: data[0].id };
+        authScreen.classList.add("hidden");
+        await startBank();
+        return;
+      }
+    } catch(err){
+      console.warn("Init bank-code login error:", err);
+    }
+  }
+
+  setBankAccessCode("");
+  currentUser = null;
+  currentProfile = null;
+  showEntryStep();
+  authScreen.classList.remove("hidden");
+}
+
+/* Agreement gates all bank initialization */
+const agreementScreen = document.getElementById("agreementScreen");
+const agreementDetails = document.getElementById("agreementDetails");
+const agreementRefused = document.getElementById("agreementRefused");
+
+document.getElementById("openDataDetails").addEventListener("click", event => {
+  event.preventDefault();
+  agreementDetails.classList.remove("hidden");
+});
+document.getElementById("closeDataDetails").addEventListener("click", () => {
+  agreementDetails.classList.add("hidden");
+});
+agreementDetails.addEventListener("click", event => {
+  if (event.target === agreementDetails) agreementDetails.classList.add("hidden");
+});
+document.getElementById("agreementAccept").addEventListener("click", async () => {
+  agreementScreen.classList.add("hidden");
+  agreementDetails.classList.add("hidden");
+  agreementRefused.classList.add("hidden");
+  await init();
+});
+document.getElementById("agreementDecline").addEventListener("click", () => {
+  agreementScreen.classList.add("hidden");
+  agreementDetails.classList.add("hidden");
+  agreementRefused.classList.remove("hidden");
+});
+document.getElementById("refusalClose").addEventListener("click", () => {
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (tg && typeof tg.close === "function") tg.close();
+  else {
+    agreementRefused.querySelector(".agreement-copy").textContent =
+      "Вы отказались от соглашения. Закройте эту вкладку вручную.";
+  }
+});
+
+
+</script>
+
+</body>
+  </html>
