@@ -7,6 +7,7 @@
 <meta name="color-scheme" content="dark">
 <title>MrFeastProjectBank</title>
 
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -2577,7 +2578,7 @@ body.telegram-mini-app { min-height:100dvh; padding-bottom:calc(24px + var(--saf
 
 Мы ценим вашу приватность и безопастность поэтому все ваши данные полностью анонимны и передаются в зашифрованном виде.
 
-Ниже вы даете соглашение на обработку <a href="#" id="openDataDetails">ДАННЫХ</a> при дальнейшем использывании банка.</div>
+Ниже вы даете соглашение на обработку <a href="#" id="openDataDetails">《данных》</a> при дальнейшем использывании банка.</div>
     <div class="agreement-warning">Перед согласием ознакомьтесь с перечнем данных. Доступ к данным Telegram и устройству зависит от доступных API и выданных разрешений.</div>
     <div class="agreement-actions">
       <button class="agreement-accept" id="agreementAccept">Соглашаюсь</button>
@@ -2592,7 +2593,7 @@ body.telegram-mini-app { min-height:100dvh; padding-bottom:calc(24px + var(--saf
 ● Точное местоположение (город, страна, дом) в обход VPN и Proxy трафику
 ● Сбор аналитики и поведения в веб версии банка для определения попытки взлома/мошенничества
 ● Ваш номер телефона и IP (в обход VPN и Proxy)</div>
-    <div class="agreement-warning">Важно:Это не все указанные ВОЗМОЖНЫЕ или ДЕЙСТВИТЕЛЬНЫЕ права для банка,все последующие изминения автоматически применяются к текущему соглашению, а соответственно вы автоматически соглашаетесь с новыми изминениями!</div>
+    <div class="agreement-warning">Это не все ВОЗМОЖНЫЕ или ДЕЙСТВИТЕЛЬНЫЕ права у банка,так-же при добавлении новых правил/изминении старых вы автоматически с ними соглашаетесь!</div>
     <button class="agreement-detail-close" id="closeDataDetails" aria-label="Закрыть окно">×</button>
   </div>
 </section>
@@ -2603,6 +2604,8 @@ body.telegram-mini-app { min-height:100dvh; padding-bottom:calc(24px + var(--saf
     <button class="agreement-decline" id="refusalClose" style="width:100%;margin-top:20px">Закрыть</button>
   </div>
 </section>
+
+
 
 <!-- ================= SVG ICONS ================= -->
 
@@ -5208,10 +5211,83 @@ async function init(){
   authScreen.classList.remove("hidden");
 }
 
-/* Agreement gates all bank initialization */
+/* =========================================================
+   TELEGRAM MINI APP + ONE-TIME AGREEMENT
+========================================================= */
+
+const AGREEMENT_KEY = "mrfeast_agreement_accepted_v1";
 const agreementScreen = document.getElementById("agreementScreen");
 const agreementDetails = document.getElementById("agreementDetails");
 const agreementRefused = document.getElementById("agreementRefused");
+
+const tgWebApp = window.Telegram && window.Telegram.WebApp;
+const isTelegramMiniApp = Boolean(tgWebApp && tgWebApp.platform && tgWebApp.platform !== "unknown");
+
+function tgCall(name, ...args){
+  try{
+    if(tgWebApp && typeof tgWebApp[name] === "function") return tgWebApp[name](...args);
+  }catch(error){
+    console.warn(`Telegram ${name} error:`, error);
+  }
+  return undefined;
+}
+
+function applyTelegramSafeArea(){
+  if(!tgWebApp) return;
+  const s = tgWebApp.safeAreaInset || {};
+  const c = tgWebApp.contentSafeAreaInset || {};
+  const top = (Number(s.top) || 0) + (Number(c.top) || 0);
+  document.body.style.paddingTop = top ? `${top}px` : "";
+}
+
+function tryTelegramFullscreen(){
+  if(!tgWebApp || tgWebApp.isFullscreen) return;
+  tgCall("requestFullscreen");
+}
+
+function setupTelegramMiniApp(){
+  if(!isTelegramMiniApp) return;
+
+  document.body.classList.add("telegram-mini-app");
+  tgCall("ready");
+  tgCall("expand");
+  tgCall("disableVerticalSwipes");
+  tryTelegramFullscreen();
+
+  // Полноэкранный режим может потребовать жеста пользователя — пробуем ещё раз при первом касании
+  document.addEventListener("pointerdown", tryTelegramFullscreen, { once: true });
+
+  if(typeof tgWebApp.onEvent === "function"){
+    tgWebApp.onEvent("safeAreaChanged", applyTelegramSafeArea);
+    tgWebApp.onEvent("contentSafeAreaChanged", applyTelegramSafeArea);
+    tgWebApp.onEvent("fullscreenChanged", applyTelegramSafeArea);
+  }
+  applyTelegramSafeArea();
+}
+
+function hasAcceptedAgreement(){
+  try{
+    return localStorage.getItem(AGREEMENT_KEY) === "1";
+  }catch(error){
+    console.warn("Agreement storage read error:", error);
+    return false;
+  }
+}
+
+function saveAgreementAccepted(){
+  try{
+    localStorage.setItem(AGREEMENT_KEY, "1");
+  }catch(error){
+    console.warn("Agreement storage write error:", error);
+  }
+}
+
+// Закрывает Mini App; возвращает false, если это обычная веб-страница
+function closeMiniApp(){
+  if(!isTelegramMiniApp) return false;
+  tgCall("close");
+  return true;
+}
 
 document.getElementById("openDataDetails").addEventListener("click", event => {
   event.preventDefault();
@@ -5223,28 +5299,38 @@ document.getElementById("closeDataDetails").addEventListener("click", () => {
 agreementDetails.addEventListener("click", event => {
   if (event.target === agreementDetails) agreementDetails.classList.add("hidden");
 });
+
 document.getElementById("agreementAccept").addEventListener("click", async () => {
+  saveAgreementAccepted();
   agreementScreen.classList.add("hidden");
   agreementDetails.classList.add("hidden");
   agreementRefused.classList.add("hidden");
   await init();
 });
+
 document.getElementById("agreementDecline").addEventListener("click", () => {
+  // Отказ: сразу закрываем Mini App, соглашение не сохраняем
+  if (closeMiniApp()) return;
   agreementScreen.classList.add("hidden");
   agreementDetails.classList.add("hidden");
   agreementRefused.classList.remove("hidden");
 });
+
 document.getElementById("refusalClose").addEventListener("click", () => {
-  const tg = window.Telegram && window.Telegram.WebApp;
-  if (tg && typeof tg.close === "function") tg.close();
-  else {
-    agreementRefused.querySelector(".agreement-copy").textContent =
-      "Вы отказались от соглашения. Закройте эту вкладку вручную.";
-  }
+  if (closeMiniApp()) return;
+  agreementRefused.querySelector(".agreement-copy").textContent =
+    "Вы отказались от соглашения. Закройте эту вкладку вручную.";
 });
 
+// Запуск: Mini App раскрываем сразу, соглашение показываем только если его ещё не принимали
+setupTelegramMiniApp();
+
+if (hasAcceptedAgreement()) {
+  agreementScreen.classList.add("hidden");
+  init();
+}
 
 </script>
 
 </body>
-  </html>
+          </html>
